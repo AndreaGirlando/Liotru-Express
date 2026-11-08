@@ -7,11 +7,13 @@ import 'package:catania_bus/ui/stop_detail.dart';
 import 'package:catania_bus/ui/routes.dart';
 import 'package:catania_bus/ui/metro.dart';
 import 'package:catania_bus/data/metro_timetable.dart';
+import 'package:catania_bus/domain/metro.dart';
 import 'live_snapshot_fixture.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late LiveSnapshotFixture fixture;
+  late MetroTimetable metroTimetable;
   setUpAll(() async {
     final loader = FontLoader('Manrope')
       ..addFont(rootBundle.load('assets/fonts/Manrope-Regular.ttf'))
@@ -24,7 +26,7 @@ void main() {
       ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
     await icons.load();
     fixture = await loadLiveSnapshot();
-    await loadMetroTimetable();
+    metroTimetable = await loadMetroTimetable();
   });
   tearDownAll(() async => fixture.close());
   for (final dark in [false, true]) {
@@ -111,21 +113,37 @@ void main() {
     );
     await tester.pumpWidget(const SizedBox.shrink());
   });
-  testWidgets('Metro Milo both directions official timetable preview', (tester) async {
+  testWidgets('Metro Milo both directions official timetable preview', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(430, 1100);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(MaterialApp(
-      theme: BusDesign.theme(Brightness.light),
-      home: RepaintBoundary(key: const Key('metro-preview'), child: Scaffold(body: SafeArea(child: MetroScreen(fixture.state, clock: () => DateTime.utc(2026, 11, 8, 11, 0))))),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: BusDesign.theme(Brightness.light),
+        home: RepaintBoundary(
+          key: const Key('metro-preview'),
+          child: Scaffold(
+            body: SafeArea(
+              child: MetroScreen(
+                fixture.state,
+                clock: () => DateTime.utc(2026, 11, 8, 11, 0),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Verso Stesicoro'), findsOneWidget);
     expect(find.text('Verso Monte Po'), findsOneWidget);
-    await expectLater(find.byKey(const Key('metro-preview')), matchesGoldenFile('previews/metro-milo.png'));
+    await expectLater(
+      find.byKey(const Key('metro-preview')),
+      matchesGoldenFile('previews/metro-milo.png'),
+    );
     await tester.pumpWidget(const SizedBox.shrink());
   });
-
 }

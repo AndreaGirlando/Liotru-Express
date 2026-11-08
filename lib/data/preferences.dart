@@ -13,7 +13,10 @@ class UserPreferences {
   String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
   String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
   String get metroStation => prefs.getString('metro_station') ?? '1663';
-  Future<void> setMetroStation(String id) async { await prefs.setString('metro_station', id); }
+  Future<void> setMetroStation(String id) async {
+    await prefs.setString('metro_station', id);
+  }
+
   bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? true;
   Future<void> setRealtimeEnabled(bool value) async {
     await prefs.setBool('realtime_enabled', value);

@@ -8,10 +8,25 @@ MetroTimetable syntheticMetro() => MetroTimetable(
     MetroStation('C', 'Stesicoro Test', 1200, 0),
   ],
   days: {
-    for (final key in ['weekday', 'friday', 'saturday', 'sunday', 'holiday_weekday', 'holiday_late'])
+    for (final key in [
+      'weekday',
+      'friday',
+      'saturday',
+      'sunday',
+      'holiday_weekday',
+      'holiday_late',
+    ])
       key: {
-        'stesicoro': [6 * 3600, 6 * 3600 + 600, if (key == 'friday') 24 * 3600 + 1800],
-        'montepo': [6 * 3600 + 300, 6 * 3600 + 900, if (key == 'friday') 24 * 3600 + 1800],
+        'stesicoro': [
+          6 * 3600,
+          6 * 3600 + 600,
+          if (key == 'friday') 24 * 3600 + 1800,
+        ],
+        'montepo': [
+          6 * 3600 + 300,
+          6 * 3600 + 900,
+          if (key == 'friday') 24 * 3600 + 1800,
+        ],
       },
   },
   published: DateTime.utc(2026, 9, 3),

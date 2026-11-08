@@ -151,6 +151,8 @@ Le partenze sono estratte dal [quadro orario ufficiale FCE](https://www.circumet
 pubblicato il 3 settembre 2026 e verificato l’8 novembre. Alle stazioni intermedie
 si aggiungono i tempi relativi del GTFS FCE pubblicato: il suo calendario è fermo
 al **28 febbraio 2025**, nonostante il titolo della pagina indichi il 2028.
+Il vecchio GTFS viene usato solo per le durate fra stazioni: i suoi calendari
+non vengono estesi né usati per attivare corse attuali.
 Questi tempi storici possono essere imprecisi: la limitazione è sempre visibile
 nella scheda, con ulteriori dettagli in **Fonti e limiti delle stime**.
 Non vengono rilevati ritardi, soppressioni o modifiche straordinarie. Il conto
