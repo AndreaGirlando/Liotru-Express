@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 
 properties = Path('android/gradle/wrapper/gradle-wrapper.properties').read_text()
 url = re.search(r'^distributionUrl=(.+)$', properties, re.M)[1].replace('\\:', ':')
@@ -27,11 +28,22 @@ directory.mkdir(parents=True, exist_ok=True)
 destination = directory / filename
 if not destination.with_suffix('.zip.ok').exists():
     part = destination.with_suffix('.zip.download')
-    subprocess.run(['curl', '--fail', '--location', '--retry', '4',
-                    '--retry-all-errors', '--retry-delay', '3',
-                    '--connect-timeout', '25', '--max-time', '120',
-                    url, '-o', str(part)], check=True)
-    digest = hashlib.file_digest(part.open('rb'), 'sha256').hexdigest()
+    result = subprocess.run(['curl', '--fail', '--location', '--retry', '1',
+                             '--retry-all-errors', '--retry-delay', '3',
+                             '--connect-timeout', '25', '--max-time', '120',
+                             url, '-o', str(part)])
+    if result.returncode:
+        # Official Gradle release, via GitHub's assets API rather than its
+        # web redirect. Same bytes, same mandatory checksum verification.
+        version = re.fullmatch(r'gradle-([\d.]+)-bin.zip', filename)[1]
+        tag = 'v' + version + ('.0' if version.count('.') == 1 else '')
+        with tempfile.TemporaryDirectory(prefix='catania_gradle_') as temporary:
+            subprocess.run(['gh', 'release', 'download', tag,
+                            '--repo', 'gradle/gradle-distributions',
+                            '--pattern', filename, '--dir', temporary], check=True)
+            (Path(temporary) / filename).replace(part)
+    with part.open('rb') as archive:
+        digest = hashlib.file_digest(archive, 'sha256').hexdigest()
     if digest != checksum:
         part.unlink()
         raise ValueError('Checksum della distribuzione Gradle non corrispondente')

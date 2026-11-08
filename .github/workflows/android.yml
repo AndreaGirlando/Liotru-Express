@@ -50,6 +50,8 @@ jobs:
           CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
         run: flutter test test/official_feed_check.dart --reporter expanded
       - name: Prepara Gradle con retry e verifica SHA-256
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: python3 tool/prepare_gradle.py
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
