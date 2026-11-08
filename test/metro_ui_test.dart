@@ -59,7 +59,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: BusDesign.theme(Brightness.light),
-          home: HomeScreen(state),
+          home: HomeScreen(state, autoRefresh: false),
         ),
       );
       await tester.pump();
@@ -74,8 +74,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Verso Stesicoro'), findsOneWidget);
       expect(find.text('Verso Monte Po'), findsOneWidget);
-      expect(find.textContaining('Nessun dato live'), findsOneWidget);
-      expect(find.textContaining('febbraio 2025'), findsOneWidget);
+      expect(find.text('Stime da orario'), findsOneWidget);
+      expect(find.textContaining('febbraio 2025'), findsNothing);
+      expect(find.text('Come funzionano le stime Metro'), findsNothing);
       expect(requests, 0);
       await tester.tap(find.byType(DropdownButtonFormField<String>));
       await tester.pumpAndSettle();
@@ -83,6 +84,21 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Sei al capolinea'), findsOneWidget);
       expect(state.preferences.metroStation, '1657');
+      await tester.tap(find.byTooltip('Impostazioni'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Come funzionano le stime Metro'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Come funzionano le stime Metro'));
+      await tester.pumpAndSettle();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+      expect(find.textContaining('28/02/2025'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

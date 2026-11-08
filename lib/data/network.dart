@@ -21,6 +21,7 @@ Future<void> downloadFile(
   Uri url,
   File file, {
   int maxBytes = 100 * 1024 * 1024,
+  void Function(int received, int? total)? onProgress,
 }) async {
   final request = http.Request('GET', url);
   final response = await client
@@ -51,6 +52,7 @@ Future<void> downloadFile(
         throw const FormatException('Risposta troppo grande');
       }
       await output.writeFrom(chunk);
+      onProgress?.call(length, response.contentLength);
     }
     await output.flush();
   } finally {

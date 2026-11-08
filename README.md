@@ -10,7 +10,8 @@ Le fonti sono state verificate dalla rete GitHub Actions l’8 novembre 2026:
 [GTFS ufficiale AMTS](https://www.amts.ct.it/GTFS/AMTCT.zip) e
 [TripUpdates BusOne](https://proxy.busone.app/amts/gtfs-rt/trip-updates.json)
 rispondono HTTP 200. Gli URL sono già compilati nelle impostazioni.
-L’app si avvia senza dati: apri **Impostazioni → Scarica e aggiorna dati**.
+Al primo avvio l’app scarica automaticamente i dati AMTS. Il comando
+**Impostazioni → Scarica e aggiorna dati** resta disponibile per un aggiornamento manuale.
 Nella versione 2.0 il tempo reale è attivo per impostazione predefinita; il
 selettore nelle impostazioni salva immediatamente la scelta. Gli utenti che
 lo avevano disattivato mantengono la propria preferenza.
@@ -26,8 +27,8 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
-   Per la versione 2.2, finché la relativa pull request non è unita a `main`,
-   seleziona `codex/metro-fce` (`git switch codex/metro-fce`).
+   Per la versione 2.3, finché la relativa pull request non è unita a `main`,
+   seleziona `codex/automatic-data-navigation` (`git switch codex/automatic-data-navigation`).
 4. Esegui:
 
 ```sh
@@ -50,20 +51,24 @@ flutter run
 Su Linux i test SQLite richiedono la libreria di sistema `libsqlite3-0`.
 Il wrapper Gradle è incluso; Flutter genera `android/local.properties` localmente.
 
-## Ottenere l’APK da GitHub
+## Ottenere l’APK diretto da GitHub
 
-Apri **Actions → Verifica e APK Android → esecuzione riuscita → Artifacts →
-CataniaBus-APK**. Estrai lo ZIP scaricato: contiene `app-release.apk`.
-Il workflow esegue prima analisi e test: l’artefatto APK viene caricato solo
-se la compilazione termina correttamente. Gli artefatti scadono dopo 30 giorni;
-puoi ricompilare dal PC o avviare nuovamente il workflow dopo il merge su main.
+Apri **Releases** e scarica **CataniaBus-2.3.0.apk**: è già il file installabile,
+non uno ZIP. La CI pubblica una release stabile `vX.Y.Z` dai push su `main`
+o dalle esecuzioni manuali; le PR interne producono anteprime identificate dal
+numero di esecuzione, collegate al commit compilato. Gli APK vengono pubblicati
+solo dopo analisi, test, verifiche dei dati e compilazione riusciti.
+È incluso il checksum SHA-256. I file «Source code» di GitHub sono il codice
+sorgente, non l’APK da installare. Gli artefatti di Actions restano disponibili
+per diagnosi e sono compressi automaticamente da GitHub.
 
-La build personale usa la chiave debug generata dall’SDK, anche in release.
-Non è una firma per il Play Store. Runner nuovi possono usare chiavi diverse:
-in tal caso per installare un nuovo APK occorre disinstallare prima il precedente,
-perdendo database e preferiti. Per aggiornamenti quotidiani conviene compilare
-sullo stesso PC, conservando la stessa chiave Android debug, oppure configurare
-una propria firma release. Non aggiungere chiavi o password alla repository.
+La firma personale debug viene conservata nella cache Actions. La cache è
+soggetta all’ambito dei rami e può essere eliminata da GitHub: per distribuzioni
+stabili a lungo termine occorre una chiave release propria conservata nei
+segreti della repository. La chiave non viene pubblicata negli artefatti né
+aggiunta al codice. Una firma diversa da quella già installata richiede
+reinstallazione, con perdita di dati locali e preferiti. Le release già
+pubblicate non vengono sovrascritte da altri commit con la stessa versione.
 
 ## Installare sul telefono
 
@@ -76,6 +81,31 @@ In alternativa, con Android Platform Tools e debug USB:
 adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
 
+## Avvio e aggiornamento automatico (2.3)
+
+Al primo avvio l’app scarica automaticamente i dati AMTS, con un’animazione
+e l’avanzamento del download. È possibile continuare a usare l’app durante
+la preparazione; in caso di errore sono disponibili Riprova e le impostazioni.
+
+Quando il calendario scade, l’app avvisa e aggiorna i dati in background senza
+mostrare l’animazione iniziale. Il controllo avviene all’apertura, alla ripresa
+e ogni minuto mentre l’app è attiva, usando il giorno di Catania (Europe/Rome).
+Non viene programmato un servizio Android a processo chiuso. La preparazione
+avviene in un database separato: gli ultimi dati rimangono leggibili e vengono
+sostituiti con una transazione atomica solo dopo la validazione. Preferiti e
+preferenze non sono cancellati.
+
+Dopo un errore di rete l’aggiornamento automatico riprova dopo 15 minuti. Se
+AMTS pubblica ancora un calendario scaduto e non più recente di quello locale,
+lo conserva e riprova dopo sei ore. La scadenza non viene estesa artificialmente.
+L’utente può aggiornare manualmente in qualsiasi momento dalle impostazioni.
+Le eccezioni che rimuovono un servizio non allungano la validità del calendario.
+
+La navigazione principale è **Home / Bus / Metro**. Dentro **Bus** si sceglie
+**Per fermata / Per linea**. L’ingranaggio dell’intestazione apre le impostazioni;
+tutte le schermate condividono marchio e titolo di sezione. La spiegazione
+completa delle stime Metro è in **Impostazioni → Come funzionano le stime Metro**.
+
 ## Importare e aggiornare gli orari AMTS
 
 La versione 1.0.1 corregge il blocco dell’importazione dal pulsante di download.
@@ -86,13 +116,13 @@ validità delle impostazioni del tempo reale.
 2. Se il download fallisce, apri [Open Data AMTS](https://www.amts.ct.it/open-data)
    nel browser e scarica l’archivio **GTFS ZIP**, senza estrarlo, sul telefono.
 3. Usa **Impostazioni → Importa ZIP dal telefono** per importarlo manualmente.
-4. Apri **Fermate**, cerca nome/codice e tocca una fermata per vedere gli arrivi.
+4. Apri **Bus → Per fermata**, cerca nome/codice e tocca una fermata per vedere gli arrivi.
 5. Usa la stella per aggiungerla ai **Preferiti**.
 
 Se AMTS cambia il link diretto HTTPS allo ZIP, puoi aggiornarlo nelle
 impostazioni e usare **Scarica e aggiorna dati**. Non usare l’URL della pagina
-HTML come se fosse l’archivio. L’importazione è manuale: nessun download in
-background. Un aggiornamento non valido lascia intatti gli ultimi dati.
+HTML come se fosse l’archivio. Il download automatico segue le regole descritte sopra; resta disponibile anche
+l’importazione manuale. Un aggiornamento non valido lascia intatti gli ultimi dati.
 
 L’importatore richiede `agency.txt`, `stops.txt`, `routes.txt`, `trips.txt`,
 `stop_times.txt` e almeno uno tra `calendar.txt` e `calendar_dates.txt`.
@@ -112,7 +142,7 @@ lontane sono raccolte in **Orari successivi**, con indicazioni come
 
 ## Ricerca per autobus (2.1)
 
-Apri la nuova scheda **Autobus** e cerca il numero o il nome della linea,
+Apri **Bus → Per linea** e cerca il numero o il nome della linea,
 per esempio **156**, **BRT1** o **Metro Shuttle**. Aprendo una linea trovi:
 
 - **Andata / Ritorno**, con partenza e destinazione esplicite;
@@ -154,7 +184,7 @@ al **28 febbraio 2025**, nonostante il titolo della pagina indichi il 2028.
 Il vecchio GTFS viene usato solo per le durate fra stazioni: i suoi calendari
 non vengono estesi né usati per attivare corse attuali.
 Questi tempi storici possono essere imprecisi: la limitazione è sempre visibile
-nella scheda, con ulteriori dettagli in **Fonti e limiti delle stime**.
+con l’etichetta **Stime da orario**; i dettagli sono in **Impostazioni → Come funzionano le stime Metro**.
 Non vengono rilevati ritardi, soppressioni o modifiche straordinarie. Il conto
 alla rovescia non rappresenta la posizione di un treno. Eventi e festività locali
 richiedono la consultazione degli avvisi FCE.
@@ -225,7 +255,8 @@ rispetto all’orario programmato.
 | Giorno/ora e contatori limitati agli arrivi vicini | `lib/domain/arrival_display.dart` |
 | Verifica fonti e build Android | `tool/verify_sources.py`, `.github/workflows/android.yml` |
 
-I test sotto `test/` usano esclusivamente dati **sintetici**, mai presentati
+I test sotto `test/` usano dati sintetici per i casi limite e verificano anche
+il quadro orario FCE incluso nell’app. I dati sintetici non sono presentati
 all’utente come dati AMTS. Coprono ZIP, rollback, ricerca, festività, date di
 servizio, cambio ora, oltre mezzanotte, TripUpdates, errori rete e preferiti.
 La verifica separata `test/official_feed_check.dart`, invocata esplicitamente

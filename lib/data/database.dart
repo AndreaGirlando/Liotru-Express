@@ -5,8 +5,10 @@ import '../domain/gtfs_time.dart';
 import '../domain/models.dart';
 
 class TransitDatabase {
-  TransitDatabase(this.db);
+  TransitDatabase(this.db, {DatabaseFactory? factory})
+    : factory = factory ?? databaseFactory;
   final Database db;
+  final DatabaseFactory factory;
 
   static Future<TransitDatabase> open(
     String path, {
@@ -30,7 +32,34 @@ class TransitDatabase {
         },
       ),
     );
-    return TransitDatabase(db);
+    return TransitDatabase(db, factory: factory ?? databaseFactory);
+  }
+
+  // CSV parsing and indexing happen in a separate database. Only this short,
+  // atomic copy holds the live database transaction; readers keep using the
+  // previous timetable during the download and staging import.
+  Future<void> replaceFrom(String path) async {
+    await db.execute('ATTACH DATABASE ? AS incoming_feed', [path]);
+    try {
+      await db.transaction((txn) async {
+        for (final table in [
+          'stops',
+          'routes',
+          'trips',
+          'stop_times',
+          'calendar',
+          'calendar_dates',
+          'metadata',
+        ]) {
+          await txn.delete(table);
+          await txn.execute(
+            'INSERT INTO main.$table SELECT * FROM incoming_feed.$table',
+          );
+        }
+      });
+    } finally {
+      await db.execute('DETACH DATABASE incoming_feed');
+    }
   }
 
   static const schema = [

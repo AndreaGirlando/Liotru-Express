@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../app_state.dart';
 import '../data/metro_timetable.dart';
 import '../domain/arrival_display.dart';
@@ -133,33 +132,16 @@ class _MetroScreenState extends State<MetroScreen> with WidgetsBindingObserver {
           ),
           const SizedBox(height: 16),
           const SmallPill(
-            'Stime da orario · Nessun dato live',
+            'Stime da orario',
             icon: Icons.info_outline_rounded,
             color: Color(0xff875708),
             background: Color(0xffffeac4),
-          ),
-          const SizedBox(height: 9),
-          Text(
-            'Ritardi e soppressioni non sono rilevati. I tempi intermedi usano dati FCE di febbraio 2025.',
-            style: TextStyle(
-              color: colors.onSurfaceVariant,
-              fontSize: 12,
-              height: 1.5,
-            ),
           ),
           const SizedBox(height: 20),
           for (final direction in MetroDirection.values) ...[
             MetroArrivalCard(data, selected, direction, reference),
             const SizedBox(height: 14),
           ],
-          Text(
-            'Il conto alla rovescia segue l’orologio del telefono e si aggiorna ogni secondo.',
-            style: TextStyle(
-              color: colors.onSurfaceVariant,
-              fontSize: 12,
-              height: 1.5,
-            ),
-          ),
           if (reference.toUtc().difference(data.checked).inDays > 30) ...[
             const SizedBox(height: 16),
             SurfaceCard(
@@ -168,46 +150,6 @@ class _MetroScreenState extends State<MetroScreen> with WidgetsBindingObserver {
               ),
             ),
           ],
-          const SizedBox(height: 16),
-          SurfaceCard(
-            padding: EdgeInsets.zero,
-            child: ExpansionTile(
-              title: const Text('Fonti e limiti delle stime'),
-              leading: const Icon(Icons.info_outline_rounded),
-              childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-              children: [
-                Text(
-                  'Le partenze dai capolinea seguono il quadro orario FCE pubblicato il ${metroDate(data.published)}, verificato il ${metroDate(data.checked)}. Alle stazioni intermedie viene aggiunto il tempo di percorrenza pubblicato nel GTFS FCE, il cui calendario termina il ${metroDate(parseServiceDate(data.offsetsValidUntil))}: è una stima e può essere imprecisa. Non rappresenta la posizione effettiva di un treno.',
-                  style: const TextStyle(height: 1.5),
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Sono distinti giorni feriali, venerdì, sabato, domenica e festività nazionali. Eventi, festività locali e modifiche straordinarie richiedono la verifica degli avvisi FCE.',
-                ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Fonte: Ferrovia Circumetnea. App indipendente da FCE e da FCE Quando.',
-                ),
-                const SizedBox(height: 12),
-                TextButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: data.sourceUrl),
-                    );
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Link dell’orario FCE copiato.'),
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.copy_rounded),
-                  label: const Text('Copia link orario ufficiale FCE'),
-                ),
-              ],
-            ),
-          ),
         ],
       );
     },
@@ -317,6 +259,3 @@ class MetroArrivalCard extends StatelessWidget {
     );
   }
 }
-
-String metroDate(DateTime date) =>
-    '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

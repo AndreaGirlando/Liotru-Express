@@ -8,6 +8,8 @@ import 'package:catania_bus/ui/routes.dart';
 import 'package:catania_bus/ui/metro.dart';
 import 'package:catania_bus/data/metro_timetable.dart';
 import 'package:catania_bus/domain/metro.dart';
+import 'package:catania_bus/ui/app_chrome.dart';
+import 'package:catania_bus/ui/initial_download.dart';
 import 'live_snapshot_fixture.dart';
 
 void main() {
@@ -126,7 +128,9 @@ void main() {
         home: RepaintBoundary(
           key: const Key('metro-preview'),
           child: Scaffold(
+            appBar: const AppTopBar(section: 'Metro FCE'),
             body: SafeArea(
+              top: false,
               child: MetroScreen(
                 fixture.state,
                 timetable: metroTimetable,
@@ -144,6 +148,37 @@ void main() {
     await expectLater(
       find.byKey(const Key('metro-preview')),
       matchesGoldenFile('previews/metro-milo.png'),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+  testWidgets('first AMTS download animation preview', (tester) async {
+    tester.view.physicalSize = const Size(430, 960);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: BusDesign.theme(Brightness.light),
+        home: RepaintBoundary(
+          key: const Key('initial-preview'),
+          child: Scaffold(
+            appBar: const AppTopBar(section: 'Benvenuto a bordo'),
+            body: InitialDownload(
+              busy: true,
+              progress: 'Scaricamento degli orari AMTS…',
+              fraction: .46,
+              onRetry: () {},
+              onContinue: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(tester.takeException(), isNull);
+    await expectLater(
+      find.byKey(const Key('initial-preview')),
+      matchesGoldenFile('previews/first-download.png'),
     );
     await tester.pumpWidget(const SizedBox.shrink());
   });

@@ -4,11 +4,18 @@ import '../app_state.dart';
 import '../domain/models.dart';
 import 'design.dart';
 import 'stop_detail.dart';
+import 'app_chrome.dart';
 
 class RouteList extends StatefulWidget {
-  const RouteList(this.state, {this.onSettings, super.key});
+  const RouteList(
+    this.state, {
+    this.onSettings,
+    this.compact = false,
+    super.key,
+  });
   final AppState state;
   final VoidCallback? onSettings;
+  final bool compact;
   @override
   State<RouteList> createState() => _RouteListState();
 }
@@ -72,24 +79,26 @@ class _RouteListState extends State<RouteList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SmallPill(
-                'RICERCA PER AUTOBUS',
-                icon: Icons.directions_bus_rounded,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Dove passa\nil tuo bus?',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Scegli la linea e scopri tutte le fermate, all’andata e al ritorno.',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.5,
+              if (!widget.compact) ...[
+                const SmallPill(
+                  'RICERCA PER AUTOBUS',
+                  icon: Icons.directions_bus_rounded,
                 ),
-              ),
-              const SizedBox(height: 22),
+                const SizedBox(height: 20),
+                Text(
+                  'Dove passa\nil tuo bus?',
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Scegli la linea e scopri tutte le fermate, all’andata e al ritorno.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 22),
+              ],
               TextField(
                 controller: input,
                 textInputAction: TextInputAction.search,
@@ -221,7 +230,7 @@ class _RouteDetailState extends State<RouteDetail> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Fermate dell’autobus')),
+    appBar: AppTopBar(section: 'Linea ${widget.route.label}', showBack: true),
     body: FutureBuilder<List<RoutePattern>>(
       future: future,
       builder: (context, snapshot) {
