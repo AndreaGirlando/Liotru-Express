@@ -16,3 +16,4 @@ android/app/release/
 *.db
 *.db-journal
 source-verification/
+__pycache__/

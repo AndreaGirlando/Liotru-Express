@@ -34,7 +34,7 @@ class GtfsImporter {
       for (final entry in archive) {
         final name = p.posix.basename(entry.name.replaceAll('\\', '/'));
         if (!requiredColumns.containsKey(name.replaceFirst(RegExp(r'\.txt$'), '')) ||
-            !name.endsWith('.txt')) continue;
+            !name.endsWith('.txt')) { continue; }
         if (!entry.isFile || entry.isSymbolicLink || !seen.add(name)) {
           throw const FormatException('File GTFS duplicato o non regolare');
         }
@@ -67,7 +67,8 @@ class GtfsImporter {
     List<String>? header;
     // RFC4180 quoted fields, embedded newlines, UTF-8 BOM and CRLF are supported.
     final stream = file.openRead().transform(utf8.decoder)
-        .transform(const CsvToListConverter(shouldParseNumbers: false));
+        .transform(const CsvToListConverter(shouldParseNumbers: false, allowInvalid:false,
+          csvSettingsDetector:FirstOccurrenceSettingsDetector(eols:['\r\n','\n'])));
     await for (final values in stream) {
       if (values.every((v) => v.toString().trim().isEmpty)) continue;
       if (header == null) {

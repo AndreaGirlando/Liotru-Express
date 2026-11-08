@@ -54,7 +54,7 @@ class RealtimeFeed {
         if (start != null && start != arrival.tripStart) return false;
         // Without a service date, reject ambiguous trip instances across days.
         if (date == null && scheduled.where((a) => a.tripId == arrival.tripId)
-            .map((a)=>a.serviceDate).toSet().length != 1) return false;
+            .map((a)=>a.serviceDate).toSet().length != 1) { return false; }
         return true;
       }).toList();
       if (matches.length != 1) { result.add(arrival); continue; }
@@ -77,7 +77,9 @@ class RealtimeFeed {
           final seq = number(field(stop,'stopSequence','stop_sequence'));
           final id = field(stop,'stopId','stop_id');
           final exact = seq != null ? seq == arrival.sequence && (id == null || id == arrival.stopId)
-              : id == arrival.stopId;
+              : id == arrival.stopId && scheduled.where((a)=>a.tripId==arrival.tripId &&
+                a.serviceDate==arrival.serviceDate && a.stopId==arrival.stopId).length==1;
+          if(seq==null && !exact) continue;
           if (seq != null && seq > arrival.sequence) continue;
           final relationship = field(stop,'scheduleRelationship','schedule_relationship');
           if (exact && relation(relationship,'SKIPPED',1)) { skipped = true; break; }
@@ -101,8 +103,8 @@ class RealtimeFeed {
           // alone cannot be converted to delays without that stop's schedule.
           if (seq != null && seq < arrival.sequence) {
             final nextDelay = number(departure?['delay']) ?? number(event?['delay']);
-            if (nextDelay != null) delay = nextDelay;
-            else if (event?['time'] != null || departure?['time'] != null) delay = null;
+            if (nextDelay != null) { delay = nextDelay; }
+            else if (event?['time'] != null || departure?['time'] != null) { delay = null; }
           }
         }
       }
