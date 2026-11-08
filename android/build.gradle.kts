@@ -1,5 +1,11 @@
 allprojects {
     repositories {
+        // CI preloads this exact official artifact with SHA-256 verification.
+        mavenLocal {
+            content {
+                includeModule("org.jetbrains.kotlin", "kotlin-compiler-embeddable")
+            }
+        }
         google()
         mavenCentral()
     }
