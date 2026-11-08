@@ -49,8 +49,8 @@ class GtfsImporter {
 
   // ZIP extraction stays off the UI isolate; only the six useful tables are
   // extracted. File-backed decoding avoids retaining stop_times in memory.
-  static String extract(String zipPath) {
-    final dir = Directory.systemTemp.createTempSync('cataniabus_gtfs_');
+  static String extract(String zipPath, String temporaryRoot) {
+    final dir = Directory(temporaryRoot).createTempSync('cataniabus_gtfs_');
     final input = InputFileStream(zipPath);
     try {
       final archive = ZipDecoder().decodeStream(input);
@@ -146,13 +146,15 @@ class GtfsImporter {
   Future<void> importZip(
     String path, {
     required String source,
+    String? temporaryRoot,
     void Function(String)? progress,
   }) async {
     if (await File(path).length() > 100 * 1024 * 1024) {
       throw const FormatException('ZIP superiore a 100 MB');
     }
     progress?.call('Estrazione e controllo archivio…');
-    final directory = await Isolate.run(() => extract(path));
+    final root = temporaryRoot ?? Directory.systemTemp.path;
+    final directory = await Isolate.run(() => extract(path, root));
     try {
       var agencyCount = 0;
       await for (final row in rows(
@@ -193,7 +195,7 @@ class GtfsImporter {
             if (count % 500 == 0) {
               await batch.commit(noResult: true);
               batch = txn.batch();
-              progress?.call('$table: $count righe…');
+              progress?.call('Importazione GTFS: $count righe…');
             }
           }
           await batch.commit(noResult: true);

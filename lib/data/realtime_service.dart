@@ -22,13 +22,17 @@ class RealtimeService {
 
   // All screens share this rate limit. Manual refresh cannot bypass it.
   Future<RealtimeResult> fetch(String url, DateTime now) async {
+    while (_pending != null) {
+      final pending = _pending!;
+      if (url == _url) return pending;
+      await pending;
+    }
     if (url != _url) {
       _cache = null;
       _lastAttempt = null;
       _retryAfter = null;
       _url = url;
     }
-    if (_pending != null) return _pending!;
     if ((_retryAfter != null && now.isBefore(_retryAfter!)) ||
         (_lastAttempt != null &&
             now.difference(_lastAttempt!) < const Duration(seconds: 60))) {

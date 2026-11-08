@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -269,6 +270,24 @@ void main() {
           .isRealtime,
       isFalse,
     );
+    client.close();
+  });
+  test('changing source never reuses an in-flight previous feed', () async {
+    final gate = Completer<void>();
+    var calls = 0;
+    final client = MockClient((request) async {
+      calls++;
+      if (request.url.path == '/old') await gate.future;
+      final delay = request.url.path == '/old' ? 60 : 120;
+      return http.Response(jsonEncode(json({'delay': delay})), 200);
+    });
+    final service = RealtimeService(client);
+    final old = service.fetch('https://example.invalid/old', now);
+    final latest = service.fetch('https://example.invalid/new', now);
+    gate.complete();
+    expect((await old).feed!.updates.single['delay'], 60);
+    expect((await latest).feed!.updates.single['delay'], 120);
+    expect(calls, 2);
     client.close();
   });
   test('BusOne identification and Retry-After are honored', () async {

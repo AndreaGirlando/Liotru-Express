@@ -57,15 +57,14 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     Directory? temp;
     try {
+      final cache = await getTemporaryDirectory();
       var path = localPath;
       final source = path == null
           ? preferences.staticUrl
           : 'Importazione manuale: ${p.basename(path)}';
       if (path == null) {
         final uri = httpsUrl(preferences.staticUrl);
-        temp = await (await getTemporaryDirectory()).createTemp(
-          'gtfs_download_',
-        );
+        temp = await cache.createTemp('gtfs_download_');
         path = p.join(temp.path, 'feed.zip');
         progress = 'Download archivio GTFS…';
         notifyListeners();
@@ -74,6 +73,7 @@ class AppState extends ChangeNotifier {
       await GtfsImporter(database).importZip(
         path,
         source: source,
+        temporaryRoot: cache.path,
         progress: (message) {
           progress = message;
           notifyListeners();

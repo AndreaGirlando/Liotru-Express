@@ -24,6 +24,8 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
+   Finché la pull request non è unita a `main`, seleziona il branch
+   `codex/cataniabus-android` (`git switch codex/cataniabus-android`).
 4. Esegui:
 
 ```sh

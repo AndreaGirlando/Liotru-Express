@@ -21,9 +21,12 @@ void main() {
       factory: databaseFactoryFfi,
     );
     final zip = await fixtureZip(directory);
-    await GtfsImporter(
-      database,
-    ).importZip(zip.path, source: 'SYNTHETIC TEST DATA');
+    final importer = GtfsImporter(database);
+    await importer.importZip(
+      zip.path,
+      source: 'SYNTHETIC TEST DATA',
+      temporaryRoot: directory.path,
+    );
   });
   tearDown(() async {
     await database.db.close();
