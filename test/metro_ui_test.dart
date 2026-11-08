@@ -64,6 +64,13 @@ void main() {
       );
       await tester.pump();
       await tester.tap(find.text('Metro'));
+      for (var i = 0; i < 100; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 15)),
+        );
+        await tester.pump(const Duration(milliseconds: 20));
+        if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
+      }
       await tester.pumpAndSettle();
       expect(find.text('Verso Stesicoro'), findsOneWidget);
       expect(find.text('Verso Monte Po'), findsOneWidget);
