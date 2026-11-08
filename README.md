@@ -103,6 +103,10 @@ sorgente, non l’APK da installare. Gli artefatti di Actions restano disponibil
 per diagnosi e sono compressi automaticamente da GitHub.
 
 La firma personale debug viene conservata nella cache Actions. La cache è
+generata e usata da Gradle nello stesso percorso esplicito, scelto tramite
+`LIOTRU_DEBUG_KEYSTORE`; le build locali usano la firma debug Android normale.
+La correzione 2.4 richiede una prima reinstallazione rispetto agli APK 2.3,
+perché le loro chiavi non erano state conservate correttamente. La cache è
 soggetta all’ambito dei rami e può essere eliminata da GitHub: per distribuzioni
 stabili a lungo termine occorre una chiave release propria conservata nei
 segreti della repository. La chiave non viene pubblicata negli artefatti né

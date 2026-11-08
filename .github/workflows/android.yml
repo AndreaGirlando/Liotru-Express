@@ -88,9 +88,19 @@ jobs:
       - name: Conserva la firma personale per le build successive
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: cataniabus-android-debug-signing-v1
+          path: ${{ runner.temp }}/liotru-signing/debug.keystore
+          key: liotru-personal-debug-signing-v2
+      - name: Prepara la chiave personale nel percorso conservato
+        env:
+          LIOTRU_DEBUG_KEYSTORE: ${{ runner.temp }}/liotru-signing/debug.keystore
+        run: |
+          mkdir -p "$(dirname "$LIOTRU_DEBUG_KEYSTORE")"
+          if [ ! -f "$LIOTRU_DEBUG_KEYSTORE" ]; then
+            keytool -genkeypair -keystore "$LIOTRU_DEBUG_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt
+          fi
       - run: flutter build apk --release
+        env:
+          LIOTRU_DEBUG_KEYSTORE: ${{ runner.temp }}/liotru-signing/debug.keystore
       - name: Pubblica APK diretto nelle Release
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
