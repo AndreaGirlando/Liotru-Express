@@ -138,14 +138,6 @@ class _HomeMetroCardState extends State<HomeMetroCard>
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Stazione preferita',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xffb6cbd0),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
                         key: ValueKey('favorite-metro-${station.id}'),
                         initialValue: station.id,
