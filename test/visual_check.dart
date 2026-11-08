@@ -129,6 +129,7 @@ void main() {
             body: SafeArea(
               child: MetroScreen(
                 fixture.state,
+                timetable: metroTimetable,
                 clock: () => DateTime.utc(2026, 11, 8, 11, 0),
               ),
             ),
