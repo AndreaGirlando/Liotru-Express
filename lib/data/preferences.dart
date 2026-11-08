@@ -21,6 +21,7 @@ class UserPreferences {
       await setMetroFavoriteStation(metroStation);
     }
   }
+
   DateTime? get nextAutomaticUpdate {
     final stamp = prefs.getInt('next_automatic_update');
     return stamp == null

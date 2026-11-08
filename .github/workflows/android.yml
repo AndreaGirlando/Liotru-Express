@@ -50,28 +50,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - id: format
-        run: dart format --output=none --set-exit-if-changed lib test
-      - name: Prepara formattazione per diagnosi
-        if: failure() && steps.format.outcome == 'failure'
-        run: dart format lib test
-      - uses: actions/upload-artifact@v4
-        if: failure() && steps.format.outcome == 'failure'
-        with:
-          name: codice-formattato
-          path: |
-            lib/**/*.dart
-            test/**/*.dart
-      - uses: actions/upload-artifact@v4
-        if: failure() && steps.format.outcome == 'failure'
-        with:
-          name: dart-formatter-runtime
-          path: |
-            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/dart
-            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/dartaotruntime
-            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/snapshots/dartdev_aot.dart.snapshot
-            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/snapshots/dartdev.dart.snapshot
-            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/version
+      - run: dart format --output=none --set-exit-if-changed lib test
       - uses: actions/upload-artifact@v4
         with:
           name: dipendenze-risolte

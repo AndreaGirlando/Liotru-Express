@@ -107,55 +107,69 @@ class _MetroScreenState extends State<MetroScreen> with WidgetsBindingObserver {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-            initialValue: selected.id,
-            isExpanded: true,
-            decoration: const InputDecoration(
-              labelText: 'Stazione',
-              prefixIcon: Icon(Icons.location_on_outlined),
-            ),
-            items: [
-              for (final station in data.stations)
-                DropdownMenuItem(value: station.id, child: Text(station.name)),
-            ],
-            onChanged: (id) async {
-              if (id == null) return;
-              setState(() => stationId = id);
-              try {
-                await widget.state.preferences.setMetroStation(id);
-              } catch (_) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Non riesco a salvare la stazione scelta.'),
-                    ),
-                  );
-                }
-              }
-            },
-          ),
+                  initialValue: selected.id,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Stazione',
+                    prefixIcon: Icon(Icons.location_on_outlined),
+                  ),
+                  items: [
+                    for (final station in data.stations)
+                      DropdownMenuItem(
+                        value: station.id,
+                        child: Text(station.name),
+                      ),
+                  ],
+                  onChanged: (id) async {
+                    if (id == null) return;
+                    setState(() => stationId = id);
+                    try {
+                      await widget.state.preferences.setMetroStation(id);
+                    } catch (_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Non riesco a salvare la stazione scelta.',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
               ),
               const SizedBox(width: 8),
               ListenableBuilder(
                 listenable: widget.state,
                 builder: (context, _) {
                   final favorite =
-                      widget.state.preferences.metroFavoriteStation == selected.id;
+                      widget.state.preferences.metroFavoriteStation ==
+                      selected.id;
                   return IconButton(
                     tooltip: favorite
                         ? 'Stazione preferita della Home'
                         : 'Usa questa stazione nella Home',
-                    onPressed: favorite ? null : () async {
-                      try {
-                        await widget.state.favoriteMetro(selected.id);
-                      } catch (_) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Non riesco a salvare la stazione preferita.')),
-                          );
-                        }
-                      }
-                    },
-                    icon: Icon(favorite ? Icons.star_rounded : Icons.star_border_rounded),
+                    onPressed: favorite
+                        ? null
+                        : () async {
+                            try {
+                              await widget.state.favoriteMetro(selected.id);
+                            } catch (_) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Non riesco a salvare la stazione preferita.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                    icon: Icon(
+                      favorite ? Icons.star_rounded : Icons.star_border_rounded,
+                    ),
                   );
                 },
               ),

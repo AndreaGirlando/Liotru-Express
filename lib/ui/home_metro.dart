@@ -8,7 +8,13 @@ import '../domain/metro.dart';
 import 'design.dart';
 
 class HomeMetroCard extends StatefulWidget {
-  const HomeMetroCard(this.state, {this.onOpen, this.timetable, this.clock, super.key});
+  const HomeMetroCard(
+    this.state, {
+    this.onOpen,
+    this.timetable,
+    this.clock,
+    super.key,
+  });
   final AppState state;
   final VoidCallback? onOpen;
   final MetroTimetable? timetable;
@@ -17,7 +23,8 @@ class HomeMetroCard extends StatefulWidget {
   State<HomeMetroCard> createState() => _HomeMetroCardState();
 }
 
-class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserver {
+class _HomeMetroCardState extends State<HomeMetroCard>
+    with WidgetsBindingObserver {
   late Future<MetroTimetable> future;
   Timer? timer;
   Future<MetroTimetable> load() => widget.timetable == null
@@ -78,13 +85,21 @@ class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserv
               const Icon(Icons.subway_rounded, color: BusDesign.lime),
               const SizedBox(width: 10),
               Expanded(
-                child: Text('La tua metro', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.white)),
+                child: Text(
+                  'La tua metro',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(color: Colors.white),
+                ),
               ),
               if (widget.onOpen != null)
                 IconButton(
                   tooltip: 'Apri Metro',
                   onPressed: widget.onOpen,
-                  icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                  icon: const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                  ),
                 ),
             ],
           ),
@@ -98,7 +113,9 @@ class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserv
                   children: [
                     const Text('Orario Metro non disponibile.'),
                     TextButton(
-                      style: TextButton.styleFrom(foregroundColor: BusDesign.lime),
+                      style: TextButton.styleFrom(
+                        foregroundColor: BusDesign.lime,
+                      ),
                       onPressed: () => setState(() => future = load()),
                       child: const Text('Riprova'),
                     ),
@@ -113,7 +130,8 @@ class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserv
                 listenable: widget.state,
                 builder: (context, _) {
                   final station = data.stations.firstWhere(
-                    (s) => s.id == widget.state.preferences.metroFavoriteStation,
+                    (s) =>
+                        s.id == widget.state.preferences.metroFavoriteStation,
                     orElse: () => data.stations.first,
                   );
                   final reference = (widget.clock ?? widget.state.clock)();
@@ -130,7 +148,10 @@ class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserv
                         ),
                         items: [
                           for (final item in data.stations)
-                            DropdownMenuItem(value: item.id, child: Text(item.name)),
+                            DropdownMenuItem(
+                              value: item.id,
+                              child: Text(item.name),
+                            ),
                         ],
                         onChanged: (id) async {
                           if (id == null) return;
@@ -139,7 +160,11 @@ class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserv
                           } catch (_) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Non riesco a salvare la stazione preferita.')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Non riesco a salvare la stazione preferita.',
+                                  ),
+                                ),
                               );
                             }
                           }
@@ -152,20 +177,35 @@ class _HomeMetroCardState extends State<HomeMetroCard> with WidgetsBindingObserv
                             for (final direction in MetroDirection.values)
                               _Direction(data, station, direction, reference),
                           ];
-                          if (constraints.maxWidth < 280 || MediaQuery.textScalerOf(context).scale(14) > 20) {
+                          if (constraints.maxWidth < 280 ||
+                              MediaQuery.textScalerOf(context).scale(14) > 20) {
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [cards.first, const SizedBox(height: 14), cards.last],
+                              children: [
+                                cards.first,
+                                const SizedBox(height: 14),
+                                cards.last,
+                              ],
                             );
                           }
                           return Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [Expanded(child: cards.first), const SizedBox(width: 14), Expanded(child: cards.last)],
+                            children: [
+                              Expanded(child: cards.first),
+                              const SizedBox(width: 14),
+                              Expanded(child: cards.last),
+                            ],
                           );
                         },
                       ),
                       const SizedBox(height: 16),
-                      const Text('Passaggi stimati · orario FCE', style: TextStyle(fontSize: 11, color: Color(0xffb6cbd0))),
+                      const Text(
+                        'Passaggi stimati · orario FCE',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xffb6cbd0),
+                        ),
+                      ),
                     ],
                   );
                 },
@@ -191,18 +231,41 @@ class _Direction extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Verso ${direction.destination}', style: const TextStyle(color: BusDesign.lime, fontWeight: FontWeight.w700, fontSize: 13)),
+        Text(
+          'Verso ${direction.destination}',
+          style: const TextStyle(
+            color: BusDesign.lime,
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+          ),
+        ),
         const SizedBox(height: 10),
         if (terminal)
           const Text('Sei al capolinea', style: TextStyle(fontSize: 13))
         else if (passages.isEmpty)
-          const Text('Nessun passaggio disponibile', style: TextStyle(fontSize: 13))
+          const Text(
+            'Nessun passaggio disponibile',
+            style: TextStyle(fontSize: 13),
+          )
         else ...[
-          Text('${passages.first.estimated ? '~' : ''}${metroCountdown(passages.first.time, reference)}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, height: 1.2)),
+          Text(
+            '${passages.first.estimated ? '~' : ''}${metroCountdown(passages.first.time, reference)}',
+            style: const TextStyle(
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+            ),
+          ),
           const SizedBox(height: 6),
-          Text(arrivalWait(passages.first.time, reference), style: const TextStyle(fontSize: 12, color: Color(0xffb6cbd0))),
+          Text(
+            arrivalWait(passages.first.time, reference),
+            style: const TextStyle(fontSize: 12, color: Color(0xffb6cbd0)),
+          ),
           const SizedBox(height: 4),
-          Text('Alle ${clockTime(passages.first.time)}', style: const TextStyle(fontSize: 12, color: Color(0xffb6cbd0))),
+          Text(
+            'Alle ${clockTime(passages.first.time)}',
+            style: const TextStyle(fontSize: 12, color: Color(0xffb6cbd0)),
+          ),
         ],
       ],
     );
