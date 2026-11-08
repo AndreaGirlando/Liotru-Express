@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -31,6 +32,27 @@ void main() {
   tearDown(() async {
     await database.db.close();
     await directory.delete(recursive: true);
+  });
+
+  test('progress callback stays in the UI isolate during extraction', () async {
+    final port = ReceivePort();
+    final messages = <String>[];
+    final zip = await fixtureZip(directory);
+    try {
+      await GtfsImporter(database).importZip(
+        zip.path,
+        source: 'SYNTHETIC CALLBACK TEST',
+        temporaryRoot: directory.path,
+        progress: (message) {
+          port.sendPort.send(message);
+          messages.add(message);
+        },
+      );
+      expect(messages, contains('Estrazione e controllo archivio…'));
+      expect((await database.info())!.stops, 2);
+    } finally {
+      port.close();
+    }
   });
 
   test(
