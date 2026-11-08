@@ -77,3 +77,15 @@ soltanto i giorni effettivamente pubblicati dall’operatore.
 
 I feed a frequenza (`frequencies.txt`) vengono rifiutati esplicitamente.
 Gli orari intermedi vuoti non sono interpolati e non diventano arrivi inventati.
+
+## Caso Metro Shuttle segnalato dall’utente
+
+Nel GTFS ufficiale scaricato l’8 novembre 2026 alle 14:50 UTC, la linea
+`A-MS` (AMTS Metro Shuttle) ha 566 corse associate ai calendari feriali e
+sabato; non ci sono servizi per domenica 8 novembre. La prima partenza
+pubblicata da `1928` (Stazione Milo) è lunedì 9 novembre alle 06:25.
+Il campione BusOne della stessa verifica non contiene TripUpdates per `A-MS`.
+Un’attesa di centinaia di minuti in questo caso era il programma del giorno
+successivo, non un arrivo live. La nuova schermata lo raggruppa negli orari
+successivi con giorno e ora. Il controllo reale in CI verifica anche questa
+fermata, usando il calendario e il feed effettivamente scaricati.

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:catania_bus/ui/arrivals_controller.dart';
+import 'package:catania_bus/domain/arrival_display.dart';
 import 'live_snapshot_fixture.dart';
 
 void main() {
@@ -41,6 +42,31 @@ void main() {
           print(
             'Il campione BusOne non contiene previsioni correnti utilizzabili: il programma resta il fallback.',
           );
+        }
+        final milo = await fixture.state.database.search('', ids: ['1928']);
+        if (milo.isNotEmpty) {
+          final shuttle = ArrivalsController(
+            fixture.state,
+            milo.first,
+            clock: () => fixture.now,
+          );
+          await shuttle.refresh();
+          final published = shuttle.arrivals
+              .where((a) => a.route == 'A-MS')
+              .toList();
+          if (published.isNotEmpty) {
+            final first = published.first;
+            final label = arrivalWait(first.time, fixture.now);
+            if (first.time.difference(fixture.now) >
+                ArrivalsController.nearbyWindow) {
+              expect(label, isNot(contains(' min')));
+              expect(shuttle.later, contains(first));
+              expect(shuttle.nearby, isNot(contains(first)));
+            }
+            // ignore: avoid_print
+            print('Metro Shuttle a Stazione Milo: $label; live: ${first.isRealtime}.');
+          }
+          shuttle.dispose();
         }
       } finally {
         await fixture.close();
