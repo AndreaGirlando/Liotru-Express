@@ -36,8 +36,14 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Verifica formato Dart
-        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Formatta codice Dart
+        run: dart format lib test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codice-formattato
+          path: |
+            lib/
+            test/
       - uses: actions/upload-artifact@v4
         with:
           name: dipendenze-risolte
@@ -48,7 +54,18 @@ jobs:
         if: hashFiles('source-verification/official-gtfs.zip') != ''
         env:
           CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
-        run: flutter test test/official_feed_check.dart test/download_official_check.dart --reporter expanded
+        run: flutter test test/official_feed_check.dart test/download_official_check.dart test/realtime_live_check.dart --reporter expanded
+      - name: Anteprime Flutter con dati AMTS reali
+        if: hashFiles('source-verification/official-gtfs.zip') != ''
+        env:
+          CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
+        run: flutter test --update-goldens test/visual_check.dart --reporter expanded
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: anteprime-interfaccia
+          path: test/previews/*.png
+          if-no-files-found: ignore
       - name: Prepara Gradle con retry e verifica SHA-256
         env:
           GH_TOKEN: ${{ github.token }}

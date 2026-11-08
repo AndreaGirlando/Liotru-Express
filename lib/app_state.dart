@@ -62,6 +62,12 @@ class AppState extends ChangeNotifier {
     await import();
   }
 
+  Future<void> setRealtimeEnabled(bool value) async {
+    if (value) httpsUrl(preferences.realtimeUrl);
+    await preferences.setRealtimeEnabled(value);
+    notifyListeners();
+  }
+
   Future<void> import({String? localPath}) async {
     if (importing) return;
     importing = true;

@@ -122,5 +122,12 @@ Future<void> checkDownload(
     expect(stops!.single.id, 'S1');
   } else {
     expect(find.text('Dati GTFS aggiornati.'), findsOneWidget);
+    if (!invalidRealtime) {
+      await tester.ensureVisible(find.byType(Switch));
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+      expect(state.preferences.realtimeEnabled, isFalse);
+      expect(UserPreferences(await SharedPreferences.getInstance()).realtimeEnabled, isFalse);
+    }
   }
 }

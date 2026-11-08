@@ -9,6 +9,7 @@ import 'app_state.dart';
 import 'data/database.dart';
 import 'data/preferences.dart';
 import 'ui/home.dart';
+import 'ui/design.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,17 +56,8 @@ class CataniaBus extends StatelessWidget {
       supportedLocales: const [Locale('it')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       themeMode: state.theme,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff006b5e)),
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xff54dbc1),
-          brightness: Brightness.dark,
-        ),
-      ),
+      theme: BusDesign.theme(Brightness.light),
+      darkTheme: BusDesign.theme(Brightness.dark),
       home: HomeScreen(state),
     ),
   );

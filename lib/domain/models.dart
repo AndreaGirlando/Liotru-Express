@@ -17,14 +17,17 @@ class Arrival {
     required this.tripStart,
     required this.scheduled,
     this.predicted,
+    this.uncertaintySeconds,
   });
   final String tripId, stopId, route, destination, serviceDate, tripStart;
   final int sequence;
   final DateTime scheduled;
   final DateTime? predicted;
+  final int? uncertaintySeconds;
+  bool get isApproximate => isRealtime && (uncertaintySeconds ?? 0) > 120;
   DateTime get time => predicted ?? scheduled;
   bool get isRealtime => predicted != null;
-  Arrival withPrediction(DateTime time) => Arrival(
+  Arrival withPrediction(DateTime time, {int? uncertaintySeconds}) => Arrival(
     tripId: tripId,
     stopId: stopId,
     sequence: sequence,
@@ -34,6 +37,7 @@ class Arrival {
     tripStart: tripStart,
     scheduled: scheduled,
     predicted: time,
+    uncertaintySeconds: uncertaintySeconds,
   );
 }
 

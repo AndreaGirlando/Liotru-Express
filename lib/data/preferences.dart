@@ -9,10 +9,13 @@ class UserPreferences {
   static const busoneUrl =
       'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
   static const clientIdentity =
-      'CataniaBus/1.0; https://github.com/AndreaGirlando';
+      'CataniaBus/2.0; https://github.com/AndreaGirlando';
   String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
   String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
-  bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? false;
+  bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? true;
+  Future<void> setRealtimeEnabled(bool value) async {
+    await prefs.setBool('realtime_enabled', value);
+  }
   Future<void> toggleFavorite(String id) async {
     final ids = favorites;
     ids.contains(id) ? ids.remove(id) : ids.add(id);
