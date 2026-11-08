@@ -11,7 +11,11 @@ void main() {
   late LiveSnapshotFixture fixture;
   setUpAll(() async {
     final loader = FontLoader('Manrope')
-      ..addFont(rootBundle.load('assets/fonts/Manrope.ttf'));
+      ..addFont(rootBundle.load('assets/fonts/Manrope-Regular.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/Manrope-Medium.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/Manrope-SemiBold.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/Manrope-Bold.ttf'))
+      ..addFont(rootBundle.load('assets/fonts/Manrope-ExtraBold.ttf'));
     await loader.load();
     final icons = FontLoader('MaterialIcons')
       ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
