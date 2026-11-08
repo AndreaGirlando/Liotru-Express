@@ -11,7 +11,9 @@ Le fonti sono state verificate dalla rete GitHub Actions l’8 novembre 2026:
 [TripUpdates BusOne](https://proxy.busone.app/amts/gtfs-rt/trip-updates.json)
 rispondono HTTP 200. Gli URL sono già compilati nelle impostazioni.
 L’app si avvia senza dati: apri **Impostazioni → Scarica e aggiorna dati**.
-Poi, se vuoi, attiva il tempo reale e salva le preferenze.
+Nella versione 2.0 il tempo reale è attivo per impostazione predefinita; il
+selettore nelle impostazioni salva immediatamente la scelta. Gli utenti che
+lo avevano disattivato mantengono la propria preferenza.
 Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’artefatto
 `verifica-fonti` prodotto dal workflow nella scheda Actions della repository.
 
@@ -24,8 +26,8 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
-   Per la correzione 1.0.1, finché la relativa pull request non è unita a `main`,
-   seleziona `codex/fix-gtfs-download` (`git switch codex/fix-gtfs-download`).
+   Per la versione 2.0, finché la relativa pull request non è unita a `main`,
+   seleziona `codex/restyle-realtime` (`git switch codex/restyle-realtime`).
 4. Esegui:
 
 ```sh
@@ -104,11 +106,14 @@ I calendari sono valutati in `Europe/Rome`, con eccezioni incluse e orari
 oltre 24:00 associati al giorno di servizio corretto. **Data e ora** permette
 di consultare un altro momento (solo programmato). Gli arrivi coprono le
 successive 24 ore; non vengono interpolate fermate senza orario pubblicato.
+La vista principale mette in evidenza i prossimi 90 minuti. Le corse più
+lontane sono raccolte in **Orari successivi**, con indicazioni come
+**Domani 06:30**, anziché contatori di centinaia di minuti.
 
 ## Attivare il tempo reale
 
 L’endpoint [BusOne](https://proxy.busone.app/amts/) verificato è già inserito:
-attiva **Tempo reale** e salva. Le condizioni lette consentono l’uso personale
+il selettore **Tempo reale** si salva immediatamente. Le condizioni lette consentono l’uso personale
 gratuito con attribuzione; non serve una chiave API. L’app invia gli header
 richiesti `X-BusOne-Use: personal` e `X-BusOne-Client` con nome dell’app e
 profilo GitHub pubblico del proprietario come contatto. Per un fork cambia
@@ -124,10 +129,17 @@ nasconde fermate saltate e interrompe la propagazione a `NO_DATA`.
 Senza data del servizio non applica aggiornamenti ambigui tra giorni diversi.
 Non ricava previsioni dal GPS. Un timestamp più vecchio di 3 minuti o oltre
 30 secondi nel futuro viene scartato. Anche il timestamp individuale della corsa
-viene controllato. Un’incertezza esplicita maggiore di 120 secondi fa tornare
-all’orario programmato. Gli errori mostrano gli orari programmati.
+viene controllato. Le stime con incertezza fra 2 e 15 minuti vengono mostrate
+come **Stima BusOne**, con `~` e margine esplicito del fornitore; non sono orari
+certi. Incertezze oltre 15 minuti o negative vengono scartate. Previsioni oltre
+tre ore dal momento attuale o distanti oltre tre ore dal programma della corsa
+non vengono presentate come aggiornate. Gli errori mostrano gli orari programmati.
 
-**Tempo reale** è verde; **Programmato** è grigio. Il polling si ferma uscendo
+**Tempo reale** è verde, **Stima BusOne** è ambra e **Programmato** è grigio.
+Il pannello distingue una fonte non raggiungibile dall’assenza di previsioni
+applicabili alla fermata: una risposta HTTP 200 non equivale a copertura live.
+Gli orari SQLite vengono mostrati subito, anche mentre la rete risponde.
+Il polling si ferma uscendo
 dalla schermata o mettendo l’app in pausa. Anche il pulsante Aggiorna rispetta
 il limite di una richiesta al minuto e gli header HTTP Retry-After. L’app non garantisce ritardi oltre tre ore
 rispetto all’orario programmato.
@@ -143,6 +155,8 @@ rispetto all’orario programmato.
 | Download, timeout e frequenza richieste | `lib/data/realtime_service.dart` |
 | Preferiti, tema e fonti | `lib/data/preferences.dart` |
 | Home, ricerca, dettaglio e impostazioni | `lib/ui/` |
+| Vista arrivi, caricamento offline immediato e copertura realtime | `lib/ui/arrivals_controller.dart` |
+| Giorno/ora e contatori limitati agli arrivi vicini | `lib/domain/arrival_display.dart` |
 | Verifica fonti e build Android | `tool/verify_sources.py`, `.github/workflows/android.yml` |
 
 I test sotto `test/` usano esclusivamente dati **sintetici**, mai presentati
@@ -151,3 +165,9 @@ servizio, cambio ora, oltre mezzanotte, TripUpdates, errori rete e preferiti.
 La verifica separata `test/official_feed_check.dart`, invocata esplicitamente
 in CI, importa invece lo ZIP ufficiale appena scaricato e verifica un arrivo
 pubblicato. Questo file non è incluso nella raccolta automatica dei test sintetici.
+
+La CI confronta anche il feed TripUpdates catturato con il GTFS originale e
+con il controller effettivo della schermata (`test/realtime_live_check.dart`).
+L’artefatto `anteprime-interfaccia` contiene rendering Flutter chiaro/scuro con
+fermate e previsioni del campione reale, non schermate da un telefono fisico.
+Il carattere Manrope è incluso nell’APK con licenza OFL, senza download di font.

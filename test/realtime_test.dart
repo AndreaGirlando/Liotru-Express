@@ -82,12 +82,46 @@ void main() {
       'stopTimeUpdate': [
         {
           'stopSequence': 2,
-          'arrival': {'delay': 60, 'uncertainty': 300},
+          'arrival': {'delay': 60, 'uncertainty': 1200},
         },
       ],
     }).apply([arrival()], now);
     expect(result.single.isRealtime, isFalse);
   });
+  test('usable BusOne estimates retain their explicit uncertainty', () {
+    final result = feed({
+      'stopTimeUpdate': [
+        {
+          'stopSequence': 2,
+          'arrival': {'delay': 120, 'uncertainty': 420},
+        },
+      ],
+    }).apply([arrival()], now).single;
+    expect(result.predicted, now.add(const Duration(minutes: 12)));
+    expect(result.uncertaintySeconds, 420);
+    expect(result.isApproximate, isTrue);
+  });
+  test(
+    'a fresh feed cannot turn a wrong-day timestamp into a 1000-minute ETA',
+    () {
+      final result = feed({
+        'stopTimeUpdate': [
+          {
+            'stopSequence': 2,
+            'arrival': {
+              'time':
+                  now
+                      .add(const Duration(minutes: 1000))
+                      .millisecondsSinceEpoch ~/
+                  1000,
+            },
+          },
+        ],
+      }).apply([arrival()], now).single;
+      expect(result.isRealtime, isFalse);
+      expect(result.time, arrival().scheduled);
+    },
+  );
   test('canceled trip and skipped stop disappear', () {
     expect(
       feed({

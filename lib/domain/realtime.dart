@@ -13,6 +13,7 @@ class RealtimeFeed {
   final DateTime timestamp;
   final List<Map<String, dynamic>> updates;
   static const maxAge = Duration(minutes: 3);
+  static const maxUncertaintySeconds = 15 * 60;
 
   factory RealtimeFeed.parse(dynamic json, DateTime now) {
     final root = object(json);
@@ -113,6 +114,8 @@ class RealtimeFeed {
       }
       final stops = field(update, 'stopTimeUpdate', 'stop_time_update');
       int? delay = number(update['delay']);
+      int? delayUncertainty;
+      int? predictionUncertainty;
       DateTime? prediction;
       var skipped = false;
       if (stops is List) {
@@ -157,6 +160,7 @@ class RealtimeFeed {
           if (relation(relationship, 'SKIPPED', 1)) continue;
           if (relation(relationship, 'NO_DATA', 2)) {
             delay = null;
+            delayUncertainty = null;
             if (exact) prediction = null;
             continue;
           }
@@ -165,12 +169,15 @@ class RealtimeFeed {
           final uncertainty =
               number(event?['uncertainty']) ??
               number(departure?['uncertainty']);
-          if (uncertainty != null && (uncertainty < 0 || uncertainty > 120)) {
+          if (uncertainty != null &&
+              (uncertainty < 0 || uncertainty > maxUncertaintySeconds)) {
             delay = null;
+            delayUncertainty = null;
             prediction = null;
             continue;
           }
           if (exact) {
+            predictionUncertainty = uncertainty ?? delayUncertainty;
             final seconds = number(event?['time']);
             final eventDelay = number(event?['delay']);
             if (seconds != null) {
@@ -191,8 +198,10 @@ class RealtimeFeed {
                 number(departure?['delay']) ?? number(event?['delay']);
             if (nextDelay != null) {
               delay = nextDelay;
+              delayUncertainty = uncertainty;
             } else if (event?['time'] != null || departure?['time'] != null) {
               delay = null;
+              delayUncertainty = null;
             }
           }
         }
@@ -201,8 +210,22 @@ class RealtimeFeed {
       prediction ??= delay == null
           ? null
           : arrival.scheduled.add(Duration(seconds: delay));
+      predictionUncertainty ??= delayUncertainty;
+      // A fresh publication does not make a wrong-day ETA reliable. Reject
+      // predictions far outside this trip's timetable or the live horizon.
+      if (prediction != null &&
+          (prediction.difference(arrival.scheduled).abs() >
+                  const Duration(hours: 3) ||
+              prediction.difference(now) > const Duration(hours: 3))) {
+        prediction = null;
+      }
       result.add(
-        prediction == null ? arrival : arrival.withPrediction(prediction),
+        prediction == null
+            ? arrival
+            : arrival.withPrediction(
+                prediction,
+                uncertaintySeconds: predictionUncertainty,
+              ),
       );
     }
     result.sort((a, b) => a.time.compareTo(b.time));

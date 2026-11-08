@@ -33,7 +33,8 @@ Il rapporto distingue errori HTTP, errori di rete, ZIP validi e JSON realtime.
 La riuscita di una richiesta non dimostra da sola il diritto di utilizzare un
 servizio: consultare le condizioni del fornitore.
 
-Il realtime resta disattivato fino all’attivazione nelle impostazioni. Sono supportati
+Nella versione 2.0 il realtime è attivo per impostazione predefinita; il
+selettore salva immediatamente la scelta. Sono supportati
 TripUpdates JSON completi, in camelCase e snake_case, con timestamp del feed.
 Non sono supportati API con credenziali, protobuf binario, feed incrementali,
 corse aggiunte non presenti nel GTFS o previsioni ricavate da VehiclePositions.
@@ -53,15 +54,21 @@ garantisce disponibilità o completezza.
 
 I client automatici devono inviare `X-BusOne-Client` (applicazione e contatto)
 e `X-BusOne-Use`. CataniaBus invia `personal` e
-`CataniaBus/1.0; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
+`CataniaBus/2.0; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
 del proprietario della repository; nessun indirizzo email o segreto è incluso.
 Per riusare il progetto con un altro account cambiare `clientIdentity`.
 
 Le previsioni pubbliche sono elaborate dal middleware ORACLE di BusOne.
 Non sono previsioni GPS inventate dall’app. Il timestamp di pubblicazione non
 rinnova il timestamp del riscontro della corsa: l’app scarta anche TripUpdates
-individuali scaduti. Gli eventi con incertezza dichiarata oltre 120 secondi
-non sono mostrati come realtime aggiornato. Le VehiclePositions sono documentate
+individuali scaduti. Nel campione delle 12:13 UTC dell’8 novembre 2026 tutte
+le 474 previsioni future di corse con timestamp fresco avevano incertezza oltre
+120 secondi: la precedente soglia scartava quindi tutte quelle previsioni.
+La versione 2.0 conserva le stime con margine fino a 15 minuti, indicandolo
+esplicitamente con `~`, colore ambra e **Stima BusOne**. Le previsioni con
+incertezza maggiore o negativa restano escluse. Timestamp di arrivo incoerenti
+con la corsa o oltre tre ore nel futuro non diventano previsioni live.
+Le VehiclePositions sono documentate
 ma non vengono usate dall’app per ricavare arrivi.
 
 La variante statica BusOne può estendere provvisoriamente un calendario scaduto;
@@ -70,3 +77,15 @@ soltanto i giorni effettivamente pubblicati dall’operatore.
 
 I feed a frequenza (`frequencies.txt`) vengono rifiutati esplicitamente.
 Gli orari intermedi vuoti non sono interpolati e non diventano arrivi inventati.
+
+## Caso Metro Shuttle segnalato dall’utente
+
+Nel GTFS ufficiale scaricato l’8 novembre 2026 alle 14:50 UTC, la linea
+`A-MS` (AMTS Metro Shuttle) ha 566 corse associate ai calendari feriali e
+sabato; non ci sono servizi per domenica 8 novembre. La prima partenza
+pubblicata da `1928` (Stazione Milo) è lunedì 9 novembre alle 06:25.
+Il campione BusOne della stessa verifica non contiene TripUpdates per `A-MS`.
+Un’attesa di centinaia di minuti in questo caso era il programma del giorno
+successivo, non un arrivo live. La nuova schermata lo raggruppa negli orari
+successivi con giorno e ora. Il controllo reale in CI verifica anche questa
+fermata, usando il calendario e il feed effettivamente scaricati.

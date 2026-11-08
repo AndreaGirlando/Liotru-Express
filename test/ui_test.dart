@@ -58,4 +58,40 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+  testWidgets('tomorrow never shows an enormous minute countdown', (
+    tester,
+  ) async {
+    final late = Arrival(
+      tripId: 'SYNTHETIC',
+      stopId: 'S1',
+      sequence: 1,
+      route: '42',
+      destination: 'Test',
+      serviceDate: '20261109',
+      tripStart: '00:00:00',
+      scheduled: time.add(const Duration(minutes: 1000)),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ArrivalTile(late, reference: time)),
+      ),
+    );
+    expect(find.textContaining('Domani'), findsOneWidget);
+    expect(find.textContaining('1000'), findsNothing);
+  });
+  testWidgets('uncertain real forecasts show the supplier margin', (
+    tester,
+  ) async {
+    final uncertain = arrival(false).withPrediction(
+      time.add(const Duration(minutes: 7)),
+      uncertaintySeconds: 420,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: ArrivalTile(uncertain, reference: time)),
+      ),
+    );
+    expect(find.text('Stima BusOne'), findsOneWidget);
+    expect(find.textContaining('±7 min'), findsOneWidget);
+  });
 }

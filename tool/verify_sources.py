@@ -19,8 +19,8 @@ report = {'checked_at': datetime.now(timezone.utc).isoformat(), 'sources': []}
 
 def fetch(url, limit=20_000_000):
     request = urllib.request.Request(url, headers={
-        'User-Agent': 'CataniaBus-personal-source-check/1.0',
-        'X-BusOne-Client': 'CataniaBus/1.0; https://github.com/AndreaGirlando',
+        'User-Agent': 'CataniaBus-personal-source-check/2.0',
+        'X-BusOne-Client': 'CataniaBus/2.0; https://github.com/AndreaGirlando',
         'X-BusOne-Use': 'personal',
     })
     try:
@@ -74,6 +74,16 @@ for name, url in [
             item['header'] = feed.get('header')
             item['entity_count'] = len(feed.get('entity', []))
             item['sample_entity'] = feed.get('entity', [None])[0] if feed.get('entity') else None
+            stamp = int(feed.get('header', {}).get('timestamp', 0))
+            fresh = [e['trip_update'] for e in feed.get('entity', [])
+                     if 'trip_update' in e and -30 <= stamp - int(e['trip_update'].get('timestamp', 0)) <= 180]
+            future = [s['arrival'] for u in fresh for s in u.get('stop_time_update', [])
+                      if int(s.get('arrival', {}).get('time', 0)) >= stamp]
+            item['quality'] = {
+                'fresh_trip_updates': len(fresh), 'future_events': len(future),
+                'uncertainty_at_most_120s': sum(int(e.get('uncertainty', 0)) <= 120 for e in future),
+                'uncertainty_at_most_900s': sum(int(e.get('uncertainty', 0)) <= 900 for e in future),
+            }
         except (ValueError, AttributeError):
             item['error'] = 'La risposta non è un oggetto JSON GTFS-Realtime'
 

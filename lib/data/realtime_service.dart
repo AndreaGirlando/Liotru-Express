@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -19,6 +20,7 @@ class RealtimeService {
   DateTime? _lastAttempt;
   DateTime? _retryAfter;
   Future<RealtimeResult>? _pending;
+  String _lastFailure = 'Tempo reale non disponibile. Orari programmati AMTS.';
 
   // All screens share this rate limit. Manual refresh cannot bypass it.
   Future<RealtimeResult> fetch(String url, DateTime now) async {
@@ -32,6 +34,7 @@ class RealtimeService {
       _lastAttempt = null;
       _retryAfter = null;
       _url = url;
+      _lastFailure = 'Tempo reale non disponibile. Orari programmati AMTS.';
     }
     if ((_retryAfter != null && now.isBefore(_retryAfter!)) ||
         (_lastAttempt != null &&
@@ -39,9 +42,7 @@ class RealtimeService {
       final valid = _cache?.freshAt(now) ?? false;
       return RealtimeResult(
         valid ? _cache : null,
-        valid
-            ? 'Dati realtime disponibili'
-            : 'Tempo reale non disponibile: orari programmati',
+        valid ? 'Previsioni ricevute da BusOne' : _lastFailure,
       );
     }
     _lastAttempt = now;
@@ -89,15 +90,29 @@ class RealtimeService {
       final bytes = await readJsonBody(response.stream);
       final feed = RealtimeFeed.parse(jsonDecode(utf8.decode(bytes)), now);
       _cache = feed;
-      return RealtimeResult(feed, 'Dati realtime disponibili');
-    } catch (_) {
+      return RealtimeResult(feed, 'Previsioni ricevute da BusOne');
+    } catch (e) {
       // Never continue displaying a successful previous result after a failed
       // request. A fresh empty FULL_DATASET likewise replaces the old cache.
       _cache = null;
-      return const RealtimeResult(
-        null,
-        'Tempo reale non disponibile: orari programmati',
-      );
+      _lastFailure = switch (e) {
+        TimeoutException() =>
+          'BusOne non risponde in tempo. Orari programmati AMTS.',
+        HandshakeException() =>
+          'Connessione sicura a BusOne non riuscita. Orari programmati AMTS.',
+        SocketException() =>
+          'Impossibile contattare BusOne. Orari programmati AMTS.',
+        http.ClientException() =>
+          'Connessione a BusOne non disponibile. Orari programmati AMTS.',
+        FormatException() when e.message.startsWith('HTTP ') =>
+          'BusOne non disponibile (${e.message}). Orari programmati AMTS.',
+        FormatException() when e.message.contains('scaduti') =>
+          'Le previsioni ricevute non sono aggiornate. Verifica anche data e ora del telefono. Orari programmati AMTS.',
+        FormatException() =>
+          'Risposta BusOne non valida o non supportata. Orari programmati AMTS.',
+        _ => 'Tempo reale non disponibile. Orari programmati AMTS.',
+      };
+      return RealtimeResult(null, _lastFailure);
     }
   }
 }
