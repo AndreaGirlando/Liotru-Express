@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../domain/realtime.dart';
 import 'network.dart';
+import 'preferences.dart';
 
 class RealtimeResult {
   const RealtimeResult(this.feed, this.message);
@@ -15,13 +17,15 @@ class RealtimeService {
   RealtimeFeed? _cache;
   String? _url;
   DateTime? _lastAttempt;
+  DateTime? _retryAfter;
   Future<RealtimeResult>? _pending;
 
   // All screens share this rate limit. Manual refresh cannot bypass it.
   Future<RealtimeResult> fetch(String url, DateTime now) async {
-    if (url != _url) { _cache = null; _lastAttempt = null; _url = url; }
+    if (url != _url) { _cache = null; _lastAttempt = null; _retryAfter = null; _url = url; }
     if (_pending != null) return _pending!;
-    if (_lastAttempt != null && now.difference(_lastAttempt!) < const Duration(seconds:60)) {
+    if ((_retryAfter != null && now.isBefore(_retryAfter!)) ||
+        (_lastAttempt != null && now.difference(_lastAttempt!) < const Duration(seconds:60))) {
       final valid = _cache?.freshAt(now) ?? false;
       return RealtimeResult(valid ? _cache : null,
         valid ? 'Dati realtime disponibili' : 'Tempo reale non disponibile: orari programmati');
@@ -34,9 +38,21 @@ class RealtimeService {
 
   Future<RealtimeResult> _download(String url, DateTime now) async {
     try {
-      final response = await client.send(http.Request('GET', httpsUrl(url)))
+      final request = http.Request('GET', httpsUrl(url));
+      request.headers.addAll({'X-BusOne-Client':UserPreferences.clientIdentity,
+        'X-BusOne-Use':'personal','Accept':'application/json'});
+      final response = await client.send(request)
           .timeout(const Duration(seconds:12));
       if (response.statusCode != 200) {
+        final retry = response.headers['retry-after'];
+        if(retry != null) {
+          final seconds = int.tryParse(retry);
+          if(seconds != null && seconds > 0) {
+            _retryAfter = now.add(Duration(seconds:seconds));
+          } else {
+            try { _retryAfter = HttpDate.parse(retry); } catch(_) { /* Invalid HTTP date. */ }
+          }
+        }
         await response.stream.listen((_){}).cancel();
         throw FormatException('HTTP ${response.statusCode}');
       }

@@ -38,6 +38,11 @@ jobs:
           path: pubspec.lock
       - run: flutter analyze
       - run: flutter test --coverage
+      - name: Importazione reale AMTS
+        if: hashFiles('source-verification/official-gtfs.zip') != ''
+        env:
+          CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
+        run: flutter test test/official_feed_check.dart --reporter expanded
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:timezone/timezone.dart' as tz;
 import '../app_state.dart';
 import '../domain/gtfs_time.dart';
 import '../domain/models.dart';
@@ -82,7 +83,7 @@ class _StopListState extends State<StopList> {
       if(info != null) Padding(padding:const EdgeInsets.symmetric(horizontal:20,vertical:4),
         child:Text('GTFS importato il ${displayDate(info.importedAt)} • ${info.stops} fermate',
           style:Theme.of(context).textTheme.bodySmall)),
-      if(info != null && info.endDate.isNotEmpty && info.endDate.compareTo(serviceDate(DateTime.now())) < 0)
+      if(info != null && info.endDate.isNotEmpty && info.endDate.compareTo(serviceDate(tz.TZDateTime.from(DateTime.now(),rome))) < 0)
         const Padding(padding:EdgeInsets.all(16),child:Text('Il calendario GTFS è scaduto. Aggiorna i dati nelle impostazioni.')),
       Expanded(child:loading ? const Center(child:CircularProgressIndicator()) : error != null
         ? Center(child:TextButton(onPressed:search,child:Text(error!)))
@@ -109,6 +110,6 @@ class _StopListState extends State<StopList> {
 }
 
 String displayDate(DateTime date) {
-  final d = date.toLocal();
+  final d = tz.TZDateTime.from(date,rome);
   return '${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year} ${clockTime(date)}';
 }

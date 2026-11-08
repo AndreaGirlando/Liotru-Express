@@ -17,7 +17,8 @@ class RealtimeFeed {
     final header = object(root['header']);
     final stamp = number(header?['timestamp']);
     if (header == null || stamp == null) throw const FormatException('Timestamp realtime mancante');
-    if (relation(header['incrementality'], 'DIFFERENTIAL', 1)) {
+    final incrementality = header['incrementality'];
+    if (incrementality != null && !relation(incrementality, 'FULL_DATASET', 0)) {
       throw const FormatException('Feed incrementale non supportato');
     }
     final time = DateTime.fromMillisecondsSinceEpoch(stamp * 1000, isUtc:true);
@@ -90,6 +91,10 @@ class RealtimeFeed {
           }
           final event = object(stop['arrival']);
           final departure = object(stop['departure']);
+          final uncertainty = number(event?['uncertainty']);
+          if(exact && uncertainty != null && (uncertainty < 0 || uncertainty > 120)) {
+            delay = null; prediction = null; continue;
+          }
           if (exact) {
             final seconds = number(event?['time']);
             final eventDelay = number(event?['delay']);

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'package:archive/archive_io.dart';
 import 'package:csv/csv.dart';
+import 'package:csv/csv_settings_autodetection.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import '../domain/gtfs_time.dart';

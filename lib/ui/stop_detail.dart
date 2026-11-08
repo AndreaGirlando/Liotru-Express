@@ -93,6 +93,7 @@ class _StopDetailState extends State<StopDetail> with WidgetsBindingObserver {
         ]),
         if(selected!=null) Text('Orari dal ${selected!.day}/${selected!.month}/${selected!.year} alle ${clockTime(selected!)} • Europe/Rome'),
         const SizedBox(height:8),Text(status),
+        if(widget.state.preferences.realtimeEnabled) Text('Previsioni: BusOne (busone.app) e fonte AMTS',style:Theme.of(context).textTheme.bodySmall),
         if(updated!=null) Text('Ultimo controllo: ${clockTime(updated!)}${feedStamp==null ? '' : ' • Feed realtime: ${clockTime(feedStamp!)}'}',style:Theme.of(context).textTheme.bodySmall),
       ])),
       Expanded(child:loading ? const Center(child:CircularProgressIndicator()) : error!=null

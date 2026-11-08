@@ -38,8 +38,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onChanged:(v) {if(v!=null) widget.state.setTheme(v);}),
       const SizedBox(height:24),Text('Dati degli autobus',style:Theme.of(context).textTheme.titleLarge),
       const SizedBox(height:8),
-      const Text('Importa uno ZIP GTFS pubblicato da AMTS. La ricerca e gli orari resteranno disponibili offline. '
-        'Il link diretto ufficiale non è stato verificato: nessun dato viene inventato o precaricato.'),
+      const Text('Scarica il GTFS ufficiale AMTS con il pulsante qui sotto, oppure importa uno ZIP dal telefono. '
+        'La ricerca e gli orari resteranno disponibili offline. Fonte: AMTS, licenza IODL 2.0.'),
       const SizedBox(height:12),
       if(info!=null) Text('Ultima importazione: ${displayDate(info.importedAt)}\n${info.stops} fermate\nFonte: ${info.source}'),
       const SizedBox(height:12),
@@ -60,18 +60,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if(busy) ...[const SizedBox(height:12),const LinearProgressIndicator(),const SizedBox(height:8),Text(widget.state.progress)],
       const SizedBox(height:24),Text('Tempo reale opzionale',style:Theme.of(context).textTheme.titleLarge),
       const SizedBox(height:8),
-      const Text('BusOne non è stato verificato in questo ambiente. Prima di attivarlo, verifica accesso, condizioni d’uso '
-        'e intervallo minimo del fornitore. Sono supportati TripUpdates JSON GTFS-Realtime completi, senza chiave API. '
-        'L’app effettua al massimo una richiesta al minuto, solo con gli arrivi aperti. '
-        'Se il fornitore richiede intervalli maggiori, lascia il servizio disattivato.'),
+      const Text('BusOne offre accesso gratuito per uso personale con attribuzione. Nessuna chiave API richiesta. '
+        'L’app invia l’identificazione CataniaBus e il profilo GitHub AndreaGirlando come contatto pubblico. '
+        'Aggiornamento al massimo ogni minuto, solo con gli arrivi aperti. Le previsioni sono elaborate da BusOne, '
+        'non sono un servizio ufficiale AMTS e possono non essere disponibili.'),
       const SizedBox(height:12),
       TextField(controller:rtUrl,enabled:!busy,keyboardType:TextInputType.url,
         decoration:const InputDecoration(labelText:'URL HTTPS TripUpdates JSON',border:OutlineInputBorder())),
       SwitchListTile(contentPadding:EdgeInsets.zero,value:enabled,onChanged:busy ? null : (v)=>setState(()=>enabled=v),
-        title:const Text('Attiva il tempo reale'),subtitle:const Text('Ho verificato le condizioni e la compatibilità del servizio')),
+        title:const Text('Attiva il tempo reale'),subtitle:const Text('Servizio BusOne per il mio uso personale')),
       FilledButton.tonal(onPressed:busy ? null : ()=>run(() async {await save();message('Preferenze salvate.');}),child:const Text('Salva fonti dati')),
       const SizedBox(height:24),
-      const Text('Fonti da consultare:\nwww.amts.ct.it/open-data\nproxy.busone.app/amts/\n\n'
+      const Text('Attribuzioni:\nAMTS – Azienda Metropolitana Trasporti e Sosta Catania S.p.A.\n'
+        'Orari e fermate: IODL 2.0, www.amts.ct.it/open-data\n'
+        'Previsioni: BusOne (https://busone.app) e fonte originale AMTS.\n'
+        'Condizioni: https://proxy.busone.app/amts/\n\n'
         'CataniaBus è un’app personale indipendente. Gli orari programmati non garantiscono il passaggio effettivo. '
         'Nessun account, pubblicità o rilevamento della posizione.'),
     ]);

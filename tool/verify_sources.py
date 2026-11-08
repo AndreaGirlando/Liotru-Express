@@ -18,7 +18,11 @@ report = {'checked_at': datetime.now(timezone.utc).isoformat(), 'sources': []}
 
 
 def fetch(url, limit=20_000_000):
-    request = urllib.request.Request(url, headers={'User-Agent': 'CataniaBus-personal-source-check/1.0'})
+    request = urllib.request.Request(url, headers={
+        'User-Agent': 'CataniaBus-personal-source-check/1.0',
+        'X-BusOne-Client': 'CataniaBus/1.0; https://github.com/AndreaGirlando',
+        'X-BusOne-Use': 'personal',
+    })
     try:
         with urllib.request.urlopen(request, timeout=25) as response:
             body = response.read(limit + 1)
@@ -46,6 +50,7 @@ for i, url in enumerate(candidates[:3]):
         try:
             with zipfile.ZipFile(io.BytesIO(data)) as archive:
                 item['files'] = archive.namelist()
+                (OUT / 'official-gtfs.zip').write_bytes(data)
                 for name in ['agency.txt', 'calendar.txt', 'calendar_dates.txt', 'feed_info.txt']:
                     matches = [n for n in archive.namelist() if n.rsplit('/', 1)[-1] == name]
                     if matches:

@@ -5,8 +5,11 @@ class UserPreferences {
   final SharedPreferences prefs;
   List<String> get favorites => prefs.getStringList('favorites') ?? [];
   String get theme => prefs.getString('theme') ?? 'system';
-  String get staticUrl => prefs.getString('static_url') ?? '';
-  String get realtimeUrl => prefs.getString('realtime_url') ?? '';
+  static const officialGtfsUrl = 'https://www.amts.ct.it/GTFS/AMTCT.zip';
+  static const busoneUrl = 'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
+  static const clientIdentity = 'CataniaBus/1.0; https://github.com/AndreaGirlando';
+  String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
+  String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
   bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? false;
   Future<void> toggleFavorite(String id) async {
     final ids = favorites;
