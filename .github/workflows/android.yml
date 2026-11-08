@@ -1,0 +1,75 @@
+name: Verifica e APK Android
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifica fonti pubbliche
+        run: python3 tool/verify_sources.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verifica-fonti
+          path: source-verification/
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            android/**/*.gradle.kts
+            android/gradle/wrapper/gradle-wrapper.properties
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Verifica formato Dart
+        run: dart format --output=none --set-exit-if-changed lib test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dipendenze-risolte
+          path: pubspec.lock
+      - run: flutter analyze
+      - run: flutter test --coverage
+      - name: Importazione reale AMTS
+        if: hashFiles('source-verification/official-gtfs.zip') != ''
+        env:
+          CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
+        run: flutter test test/official_feed_check.dart --reporter expanded
+      - name: Prepara Gradle con retry e verifica SHA-256
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/prepare_gradle.py
+      - name: Preferisci Maven Central per le dipendenze dei plugin
+        run: |
+          mkdir -p ~/.gradle/init.d
+          cp tool/ci_repositories.gradle ~/.gradle/init.d/catania-repositories.gradle
+      - name: Prepara compilatore Kotlin verificato
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tool/prepare_kotlin.py
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CataniaBus-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore

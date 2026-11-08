@@ -1,0 +1,11 @@
+// Prefer Maven Central for plugin dependencies, including Flutter's included
+// Gradle build. This avoids failing web release redirects from the plugin portal.
+beforeSettings { settings ->
+    settings.pluginManagement {
+        repositories {
+            mavenCentral()
+            google()
+            gradlePluginPortal()
+        }
+    }
+}
