@@ -66,6 +66,17 @@ void main() {
       expect(await database.search('Test', ids: ['S2']), hasLength(1));
     },
   );
+  test('future removals do not extend the timetable expiry date', () async {
+    final zip = await fixtureZip(
+      directory,
+      override: {
+        'calendar_dates':
+            'service_id,date,exception_type\nDAILY,20271108,2\nEXTRA,20261108,1\n',
+      },
+    );
+    await GtfsImporter(database).importZip(zip.path, source: 'SYNTHETIC');
+    expect((await database.info())!.endDate, '20261231');
+  });
   test('only valid service day, removal and holiday addition', () async {
     final now = DateTime.utc(2026, 11, 8, 8); // 09:00 Rome
     final arrivals = await database.arrivals(

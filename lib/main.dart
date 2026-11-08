@@ -21,7 +21,7 @@ Future<void> main() async {
     final preferences = UserPreferences(await SharedPreferences.getInstance());
     final state = AppState(database, preferences, http.Client());
     await state.load();
-    runApp(CataniaBus(state));
+    runApp(LiotruExpress(state));
   } catch (_) {
     runApp(
       const MaterialApp(
@@ -32,7 +32,7 @@ Future<void> main() async {
                 padding: EdgeInsets.all(24),
                 child: Text(
                   'Impossibile aprire il database locale. '
-                  'Libera spazio sul telefono e riavvia CataniaBus.',
+                  'Libera spazio sul telefono e riavvia Liotru Express.',
                 ),
               ),
             ),
@@ -43,14 +43,14 @@ Future<void> main() async {
   }
 }
 
-class CataniaBus extends StatelessWidget {
-  const CataniaBus(this.state, {super.key});
+class LiotruExpress extends StatelessWidget {
+  const LiotruExpress(this.state, {super.key});
   final AppState state;
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: state,
     builder: (context, _) => MaterialApp(
-      title: 'CataniaBus',
+      title: 'Liotru Express',
       debugShowCheckedModeBanner: false,
       locale: const Locale('it'),
       supportedLocales: const [Locale('it')],

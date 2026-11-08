@@ -9,72 +9,259 @@ import 'settings.dart';
 import 'routes.dart';
 import 'metro.dart';
 import 'stop_detail.dart';
+import 'app_chrome.dart';
+import 'initial_download.dart';
+import 'home_metro.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen(this.state, {super.key});
+  const HomeScreen(this.state, {this.autoRefresh = true, super.key});
   final AppState state;
+  final bool autoRefresh;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int index = 0;
+  bool continueWithoutData = false;
+  Timer? expiryCheck;
+  void checkData() {
+    if (widget.autoRefresh) unawaited(widget.state.refreshScheduleIfNeeded());
+  }
+
+  void startChecks() {
+    expiryCheck?.cancel();
+    if (widget.autoRefresh) {
+      expiryCheck = Timer.periodic(
+        const Duration(minutes: 1),
+        (_) => checkData(),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      bottom: false,
-      child: switch (index) {
-        0 => StopList(
-          widget.state,
-          favorites: true,
-          onSearch: () => setState(() => index = 1),
-          onSettings: () => setState(() => index = 4),
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    startChecks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) checkData();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      checkData();
+      startChecks();
+    } else {
+      expiryCheck?.cancel();
+    }
+  }
+
+  @override
+  void dispose() {
+    expiryCheck?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void settings() => Navigator.push(
+    context,
+    MaterialPageRoute<void>(builder: (_) => SettingsPage(widget.state)),
+  );
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.state,
+    builder: (context, _) {
+      final initial =
+          widget.autoRefresh &&
+          widget.state.feed == null &&
+          !continueWithoutData;
+      return Scaffold(
+        appBar: AppTopBar(
+          section: initial
+              ? 'Benvenuto a bordo'
+              : [
+                  'I tuoi preferiti',
+                  'Bus · fermate e linee',
+                  'Metro FCE',
+                ][index],
+          onSettings: settings,
         ),
-        1 => StopList(
-          widget.state,
-          favorites: false,
-          onSettings: () => setState(() => index = 4),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: initial
+              ? InitialDownload(
+                  busy: widget.state.importing,
+                  progress: widget.state.progress,
+                  fraction: widget.state.downloadProgress,
+                  error: widget.state.automaticFailed
+                      ? widget.state.automaticMessage
+                      : null,
+                  onRetry: () => unawaited(
+                    widget.state.refreshScheduleIfNeeded(force: true),
+                  ),
+                  onContinue: () => setState(() => continueWithoutData = true),
+                )
+              : Column(
+                  children: [
+                    if (widget.state.automaticMessage != null)
+                      DataUpdateNotice(widget.state),
+                    Expanded(
+                      child: switch (index) {
+                        0 => StopList(
+                          widget.state,
+                          favorites: true,
+                          onSearch: () => setState(() => index = 1),
+                          onMetro: () async {
+                            await widget.state.preferences.setMetroStation(
+                              widget.state.preferences.metroFavoriteStation,
+                            );
+                            if (mounted) setState(() => index = 2);
+                          },
+                          onSettings: settings,
+                        ),
+                        1 => ExploreScreen(widget.state, onSettings: settings),
+                        _ => MetroScreen(widget.state),
+                      },
+                    ),
+                  ],
+                ),
         ),
-        2 => RouteList(
-          widget.state,
-          onSettings: () => setState(() => index = 4),
-        ),
-        3 => MetroScreen(widget.state),
-        _ => SettingsScreen(widget.state),
-      },
-    ),
-    bottomNavigationBar: Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        bottomNavigationBar: initial
+            ? null
+            : Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                ),
+                child: NavigationBar(
+                  selectedIndex: index,
+                  onDestinationSelected: (value) =>
+                      setState(() => index = value),
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home_rounded),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.search_rounded),
+                      label: 'Bus',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.subway_outlined),
+                      selectedIcon: Icon(Icons.subway_rounded),
+                      label: 'Metro',
+                    ),
+                  ],
+                ),
+              ),
+      );
+    },
+  );
+}
+
+class ExploreScreen extends StatefulWidget {
+  const ExploreScreen(this.state, {this.onSettings, super.key});
+  final AppState state;
+  final VoidCallback? onSettings;
+  @override
+  State<ExploreScreen> createState() => _ExploreScreenState();
+}
+
+class _ExploreScreenState extends State<ExploreScreen> {
+  bool lines = false;
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 4),
+        child: SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(
+                value: false,
+                label: Text('Per fermata'),
+                icon: Icon(Icons.location_on_outlined),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text('Per linea'),
+                icon: Icon(Icons.alt_route_rounded),
+              ),
+            ],
+            selected: {lines},
+            onSelectionChanged: (value) => setState(() => lines = value.single),
+          ),
         ),
       ),
-      child: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (value) => setState(() => index = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_outline_rounded),
-            selectedIcon: Icon(Icons.bookmark_rounded),
-            label: 'Preferiti',
+      Expanded(
+        child: lines
+            ? RouteList(
+                widget.state,
+                compact: true,
+                onSettings: widget.onSettings,
+              )
+            : StopList(
+                widget.state,
+                favorites: false,
+                compact: true,
+                onSettings: widget.onSettings,
+              ),
+      ),
+    ],
+  );
+}
+
+class DataUpdateNotice extends StatelessWidget {
+  const DataUpdateNotice(this.state, {super.key});
+  final AppState state;
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: Container(
+      key: const Key('data-update-notice'),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 6, 10),
+      color: state.automaticFailed || state.feedExpired
+          ? Theme.of(context).colorScheme.errorContainer
+          : Theme.of(context).colorScheme.primary.withValues(alpha: .07),
+      child: Row(
+        children: [
+          Icon(
+            state.automaticUpdating
+                ? Icons.sync_rounded
+                : state.automaticFailed
+                ? Icons.cloud_off_outlined
+                : Icons.info_outline_rounded,
+            size: 20,
           ),
-          NavigationDestination(
-            icon: Icon(Icons.search_rounded),
-            label: 'Fermate',
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              state.automaticMessage!,
+              style: const TextStyle(fontSize: 12),
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.directions_bus_outlined),
-            selectedIcon: Icon(Icons.directions_bus_rounded),
-            label: 'Autobus',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.subway_outlined),
-            selectedIcon: Icon(Icons.subway_rounded),
-            label: 'Metro',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tune_rounded),
-            label: 'Impostazioni',
+          if (state.automaticFailed && !state.importing)
+            IconButton(
+              tooltip: 'Riprova aggiornamento',
+              onPressed: () =>
+                  unawaited(state.refreshScheduleIfNeeded(force: true)),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          IconButton(
+            tooltip: 'Chiudi avviso',
+            onPressed: state.dismissAutomaticMessage,
+            icon: const Icon(Icons.close_rounded),
+            iconSize: 18,
           ),
         ],
       ),
@@ -87,12 +274,15 @@ class StopList extends StatefulWidget {
     this.state, {
     required this.favorites,
     this.onSearch,
+    this.onMetro,
     this.onSettings,
+    this.compact = false,
     super.key,
   });
   final AppState state;
   final bool favorites;
-  final VoidCallback? onSearch, onSettings;
+  final bool compact;
+  final VoidCallback? onSearch, onMetro, onSettings;
   @override
   State<StopList> createState() => _StopListState();
 }
@@ -175,133 +365,23 @@ class _StopListState extends State<StopList> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 39,
-                      height: 39,
-                      decoration: BoxDecoration(
-                        color: BusDesign.ink,
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: const Icon(
-                        Icons.directions_bus_rounded,
-                        color: BusDesign.lime,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(text: 'catania'),
-                            const TextSpan(
-                              text: 'bus',
-                              style: TextStyle(color: BusDesign.teal),
-                            ),
-                          ],
-                        ),
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                    if (MediaQuery.sizeOf(context).width > 390 &&
-                        MediaQuery.textScalerOf(context).scale(12) < 18)
-                      const SmallPill(
-                        'AMTS CATANIA',
-                        icon: Icons.location_on_outlined,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 25),
                 if (widget.favorites) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xff1b4052), BusDesign.ink],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(29),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SmallPill(
-                          'LA TUA CITTÀ, OGNI GIORNO',
-                          color: BusDesign.lime,
-                          background: Color(0xff2c4b54),
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          'Il tuo prossimo\nbus a Catania.',
-                          style: Theme.of(context).textTheme.headlineLarge
-                              ?.copyWith(color: Colors.white),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Le fermate che usi. Gli arrivi che ti servono.',
-                          style: TextStyle(
-                            color: Color(0xffb6cbd0),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        Material(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(17),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(17),
-                            onTap: widget.onSearch,
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 17,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.search_rounded,
-                                    color: BusDesign.ink,
-                                  ),
-                                  SizedBox(width: 11),
-                                  Expanded(
-                                    child: Text(
-                                      'Cerca una fermata',
-                                      style: TextStyle(
-                                        color: BusDesign.ink,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_rounded,
-                                    size: 20,
-                                    color: BusDesign.ink,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  HomeMetroCard(widget.state, onOpen: widget.onMetro),
                 ] else ...[
-                  Text(
-                    'Trova la tua\nfermata.',
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Cerca per nome o codice. Anche senza rete.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  if (!widget.compact) ...[
+                    Text(
+                      'Trova la tua\nfermata.',
+                      style: Theme.of(context).textTheme.headlineLarge,
                     ),
-                  ),
-                  const SizedBox(height: 22),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Cerca per nome o codice. Anche senza rete.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 22),
+                  ],
                   TextField(
                     controller: controller,
                     onChanged: (_) {
@@ -346,7 +426,7 @@ class _StopListState extends State<StopList> {
                     fontSize: 13,
                   ),
                 ),
-                if (expired) ...[
+                if (expired && widget.state.automaticMessage == null) ...[
                   const SizedBox(height: 14),
                   _DataNotice(onTap: widget.onSettings),
                 ],
