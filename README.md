@@ -41,8 +41,7 @@ attribuiti ad AMTS con licenza IODL 2.0; l’uso di BusOne resta soggetto alle s
 condizioni, incluso l’uso personale e non commerciale. Per FCE restano valide
 le condizioni delle fonti originali, collegate nelle impostazioni. I font
 Manrope sono distribuiti con il testo della licenza OFL in `assets/fonts/OFL.txt`.
-Prima della pubblicazione verificare anche origine e licenza del PNG
-fornito per l’icona: l’averlo allegato al progetto non prova il diritto di ridistribuirlo.
+Il PNG dell’elefante fornito dal proprietario è conservato in `assets/Elefante_verde_su_sfondo_blu_notte-removebg-preview.png` e copiato senza modifiche in `assets/branding/liotru.png`. Prima della pubblicazione verificarne origine e licenza: l’averlo allegato al progetto non prova il diritto di ridistribuirlo.
 Consultare [fonti e attribuzioni](docs/FONTI_DATI.md).
 
 ## Stato dei dati
@@ -121,6 +120,15 @@ In alternativa, con Android Platform Tools e debug USB:
 ```sh
 adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
+
+## Nome e icona (2.4)
+
+Il nome visualizzato è **Liotru Express**. Il PNG originale dell’elefante viene
+usato nell’intestazione dell’app e come base delle icone Android, comprese
+quelle adattive. Colori, font e stile delle schede restano gli stessi.
+L’identificativo Android `it.personale.cataniabus` è mantenuto per conservare
+la compatibilità degli aggiornamenti. Per rigenerare le icone alle diverse
+densità, installare Pillow ed eseguire `python3 tool/prepare_icons.py`.
 
 ## Home e stazione Metro preferita (2.4)
 

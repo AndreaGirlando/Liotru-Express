@@ -92,7 +92,7 @@ jobs:
           key: cataniabus-android-debug-signing-v1
       - run: flutter build apk --release
       - name: Pubblica APK diretto nelle Release
-        if: hashFiles('assets/branding/liotru.png') != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

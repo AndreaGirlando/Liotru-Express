@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'design.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar({
@@ -22,18 +21,12 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     titleSpacing: showBack ? 0 : 22,
     title: Row(
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: BusDesign.ink,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.route_rounded,
-            color: BusDesign.lime,
-            size: 23,
-          ),
+        Image.asset(
+          'assets/branding/liotru.png',
+          width: 40,
+          height: 40,
+          fit: BoxFit.contain,
+          excludeFromSemantics: true,
         ),
         const SizedBox(width: 11),
         Expanded(
