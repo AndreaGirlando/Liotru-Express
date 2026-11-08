@@ -18,7 +18,9 @@ class TransitDatabase {
         version: 2,
         onUpgrade: (db, oldVersion, _) async {
           if (oldVersion < 2) {
-            await db.execute("ALTER TABLE trips ADD COLUMN direction_id TEXT NOT NULL DEFAULT ''");
+            await db.execute(
+              "ALTER TABLE trips ADD COLUMN direction_id TEXT NOT NULL DEFAULT ''",
+            );
           }
         },
         onCreate: (db, _) async {
@@ -117,11 +119,13 @@ class TransitDatabase {
       ['%$escaped%', '%$escaped%', text, text],
     );
     return rows
-        .map((r) => BusRoute(
-          r['route_id'] as String,
-          r['route_short_name'] as String,
-          r['route_long_name'] as String,
-        ))
+        .map(
+          (r) => BusRoute(
+            r['route_id'] as String,
+            r['route_short_name'] as String,
+            r['route_long_name'] as String,
+          ),
+        )
         .toList();
   }
 
@@ -144,7 +148,7 @@ class TransitDatabase {
       final key = jsonEncode([directionId, stops.map((s) => s.id).toList()]);
       final previous = grouped[key];
       grouped[key] = RoutePattern(
-        tripId: previous?.tripId ?? tripId!,
+        tripId: previous?.tripId ?? tripId,
         directionId: directionId,
         stops: previous?.stops ?? List.unmodifiable(stops),
         tripCount: (previous?.tripCount ?? 0) + 1,
@@ -159,11 +163,13 @@ class TransitDatabase {
         directionId = row['direction_id'] as String;
         stops = [];
       }
-      stops.add(BusStop(
-        row['stop_id'] as String,
-        row['stop_code'] as String,
-        row['stop_name'] as String,
-      ));
+      stops.add(
+        BusStop(
+          row['stop_id'] as String,
+          row['stop_code'] as String,
+          row['stop_name'] as String,
+        ),
+      );
     }
     finishTrip();
     final patterns = grouped.values.toList();

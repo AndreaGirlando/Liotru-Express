@@ -18,7 +18,9 @@ import 'route_fixtures.dart';
 
 Future<void> settleDatabase(WidgetTester tester) async {
   for (var i = 0; i < 200; i++) {
-    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 10)));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
     await tester.pump(const Duration(milliseconds: 20));
     if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
   }
@@ -26,7 +28,9 @@ Future<void> settleDatabase(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('search a bus, switch return direction and open a stop', (tester) async {
+  testWidgets('search a bus, switch return direction and open a stop', (
+    tester,
+  ) async {
     tz.initializeTimeZones();
     sqfliteFfiInit();
     SharedPreferences.setMockInitialValues({'realtime_enabled': false});
@@ -34,21 +38,38 @@ void main() {
     late AppState state;
     await tester.runAsync(() async {
       directory = await Directory.systemTemp.createTemp('route_ui_');
-      final db = await TransitDatabase.open('${directory.path}/ui.db', factory: databaseFactoryFfiNoIsolate);
+      final db = await TransitDatabase.open(
+        '${directory.path}/ui.db',
+        factory: databaseFactoryFfiNoIsolate,
+      );
       final zip = await fixtureZip(directory, override: routeFixture);
       await GtfsImporter(db).importZip(zip.path, source: 'SYNTHETIC UI TEST');
-      state = AppState(db, UserPreferences(await SharedPreferences.getInstance()), MockClient((_) async => http.Response('', 503)));
+      state = AppState(
+        db,
+        UserPreferences(await SharedPreferences.getInstance()),
+        MockClient((_) async => http.Response('', 503)),
+      );
       await state.load();
     });
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox.shrink());
-      await tester.runAsync(() async { state.client.close(); state.dispose(); await state.database.db.close(); await directory.delete(recursive: true); });
+      await tester.runAsync(() async {
+        state.client.close();
+        state.dispose();
+        await state.database.db.close();
+        await directory.delete(recursive: true);
+      });
     });
     tester.view.physicalSize = const Size(430, 1100);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(MaterialApp(theme: BusDesign.theme(Brightness.light), home: HomeScreen(state)));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: BusDesign.theme(Brightness.light),
+        home: HomeScreen(state),
+      ),
+    );
     await settleDatabase(tester);
     await tester.tap(find.text('Autobus'));
     await settleDatabase(tester);
