@@ -6,6 +6,7 @@ import '../domain/gtfs_time.dart';
 import '../domain/models.dart';
 import 'design.dart';
 import 'settings.dart';
+import 'routes.dart';
 import 'stop_detail.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,12 +27,16 @@ class _HomeScreenState extends State<HomeScreen> {
           widget.state,
           favorites: true,
           onSearch: () => setState(() => index = 1),
-          onSettings: () => setState(() => index = 2),
+          onSettings: () => setState(() => index = 3),
         ),
         1 => StopList(
           widget.state,
           favorites: false,
-          onSettings: () => setState(() => index = 2),
+          onSettings: () => setState(() => index = 3),
+        ),
+        2 => RouteList(
+          widget.state,
+          onSettings: () => setState(() => index = 3),
         ),
         _ => SettingsScreen(widget.state),
       },
@@ -54,6 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.search_rounded),
             label: 'Fermate',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.directions_bus_outlined),
+            selectedIcon: Icon(Icons.directions_bus_rounded),
+            label: 'Autobus',
           ),
           NavigationDestination(
             icon: Icon(Icons.tune_rounded),

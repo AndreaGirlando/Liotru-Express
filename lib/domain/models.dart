@@ -52,3 +52,27 @@ class FeedInfo {
   final String source, endDate;
   final int stops;
 }
+
+class BusRoute {
+  const BusRoute(this.id, this.shortName, this.longName);
+  final String id, shortName, longName;
+  String get label => shortName.isEmpty ? id : shortName;
+}
+
+class RoutePattern {
+  const RoutePattern({
+    required this.tripId,
+    required this.stops,
+    required this.tripCount,
+    this.directionId = '',
+  });
+  final String tripId;
+  final List<BusStop> stops;
+  final int tripCount;
+  final String directionId;
+  String get directionLabel => switch (directionId) {
+    '0' => 'Andata',
+    '1' => 'Ritorno',
+    _ => 'Percorso',
+  };
+}

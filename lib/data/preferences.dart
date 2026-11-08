@@ -9,7 +9,7 @@ class UserPreferences {
   static const busoneUrl =
       'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
   static const clientIdentity =
-      'CataniaBus/2.0; https://github.com/AndreaGirlando';
+      'CataniaBus/2.1; https://github.com/AndreaGirlando';
   String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
   String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
   bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? true;

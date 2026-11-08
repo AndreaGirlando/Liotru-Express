@@ -26,8 +26,8 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
-   Per la versione 2.0, finché la relativa pull request non è unita a `main`,
-   seleziona `codex/restyle-realtime` (`git switch codex/restyle-realtime`).
+   Per la versione 2.1, finché la relativa pull request non è unita a `main`,
+   seleziona `codex/search-bus` (`git switch codex/search-bus`).
 4. Esegui:
 
 ```sh
@@ -110,6 +110,30 @@ La vista principale mette in evidenza i prossimi 90 minuti. Le corse più
 lontane sono raccolte in **Orari successivi**, con indicazioni come
 **Domani 06:30**, anziché contatori di centinaia di minuti.
 
+## Ricerca per autobus (2.1)
+
+Apri la nuova scheda **Autobus** e cerca il numero o il nome della linea,
+per esempio **156**, **BRT1** o **Metro Shuttle**. Aprendo una linea trovi:
+
+- **Andata / Ritorno**, con partenza e destinazione esplicite;
+- tutte le fermate in ordine per il verso scelto;
+- eventuali varianti pubblicate nella stessa direzione;
+- accesso agli arrivi e ai preferiti toccando una fermata.
+
+I percorsi sono letti dal GTFS scaricato e funzionano offline. Non indicano
+che la linea sia in servizio adesso: date e arrivi si consultano nelle fermate.
+Le fermate ripetute di una circolare restano nell’elenco, così come quelle
+senza un orario intermedio. Le corse con identica direzione e identica sequenza
+di fermate vengono raggruppate; fermate diverse con lo stesso nome rimangono
+distinte. I giorni di servizio non vengono usati per cancellare un percorso
+dalla consultazione delle linee.
+
+Lo schema SQLite 2 aggiunge `trips.direction_id` conservando i dati precedenti.
+Per i database importati con la 2.0, aggiorna il GTFS per caricare le direzioni.
+Se il fornitore omette `direction_id`, l’app distingue le varianti per percorso
+e destinazione, senza inventare Andata e Ritorno. I valori GTFS 0 e 1 sono
+presentati come Andata e Ritorno; il verso geografico è chiarito dai capolinea.
+
 ## Attivare il tempo reale
 
 L’endpoint [BusOne](https://proxy.busone.app/amts/) verificato è già inserito:
@@ -155,6 +179,7 @@ rispetto all’orario programmato.
 | Download, timeout e frequenza richieste | `lib/data/realtime_service.dart` |
 | Preferiti, tema e fonti | `lib/data/preferences.dart` |
 | Home, ricerca, dettaglio e impostazioni | `lib/ui/` |
+| Ricerca linee, direzioni e fermate del percorso | `lib/ui/routes.dart`, `lib/data/database.dart` |
 | Vista arrivi, caricamento offline immediato e copertura realtime | `lib/ui/arrivals_controller.dart` |
 | Giorno/ora e contatori limitati agli arrivi vicini | `lib/domain/arrival_display.dart` |
 | Verifica fonti e build Android | `tool/verify_sources.py`, `.github/workflows/android.yml` |

@@ -273,11 +273,15 @@ class GtfsImporter {
           'route_long_name': text('route_long_name'),
         };
       case 'trips':
+        if (!['', '0', '1'].contains(text('direction_id'))) {
+          throw const FormatException('Direzione GTFS non valida');
+        }
         return {
           'trip_id': need('trip_id'),
           'route_id': need('route_id'),
           'service_id': need('service_id'),
           'trip_headsign': text('trip_headsign'),
+          'direction_id': text('direction_id'),
         };
       case 'stop_times':
         final seq = int.tryParse(need('stop_sequence'));
