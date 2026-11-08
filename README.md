@@ -7,7 +7,7 @@
 Trova la tua linea, salva le fermate che usi e guarda quando passa la Metro.
 Interfaccia in italiano, nessun account e nessuna pubblicità.
 
-**[Scarica l’APK](https://github.com/AndreaGirlando/CataniaAMTS/releases)** · [Segnala un problema](https://github.com/AndreaGirlando/CataniaAMTS/issues)
+**[Scarica l’APK](https://github.com/AndreaGirlando/Liotru-Express/releases)** · [Segnala un problema](https://github.com/AndreaGirlando/Liotru-Express/issues)
 
 Android **7.0+** · File `.apk` pronto da installare.
 
