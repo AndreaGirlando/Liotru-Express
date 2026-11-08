@@ -131,8 +131,10 @@ class ArrivalTile extends StatelessWidget {
         Wrap(spacing:16,runSpacing:8,crossAxisAlignment:WrapCrossAlignment.center,children:[
           Text(clockTime(arrival.time),style:Theme.of(context).textTheme.headlineSmall),
           Text(minutes<=0 ? 'In arrivo' : 'tra $minutes min',style:Theme.of(context).textTheme.titleMedium),
-          Text.rich(TextSpan(children:[WidgetSpan(child:Icon(Icons.circle,size:9,color:color)),
-            TextSpan(text:arrival.isRealtime ? ' Tempo reale' : ' Programmato')]),style:TextStyle(color:color)),
+          Wrap(spacing:6,runSpacing:4,crossAxisAlignment:WrapCrossAlignment.center,children:[
+            Icon(Icons.circle,size:9,color:color),
+            Text(arrival.isRealtime ? 'Tempo reale' : 'Programmato',style:TextStyle(color:color)),
+          ]),
         ]),
         if(arrival.isRealtime) Text('Programmato: ${clockTime(arrival.scheduled)}',style:Theme.of(context).textTheme.bodySmall),
       ]),

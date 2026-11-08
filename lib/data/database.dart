@@ -88,6 +88,9 @@ class TransitDatabase {
       if (hi < 0 || lo > maxSeconds) continue;
       final rows = await db.rawQuery('''
         SELECT st.*, t.trip_headsign, t.trip_id, r.route_short_name, r.route_long_name,
+        (SELECT terminal.stop_name FROM stop_times last
+          JOIN stops terminal ON terminal.stop_id=last.stop_id
+          WHERE last.trip_id=t.trip_id ORDER BY last.stop_sequence DESC LIMIT 1) AS terminal_name,
         (SELECT min(coalesce(departure_secs,arrival_secs)) FROM stop_times first
           WHERE first.trip_id=t.trip_id) AS trip_start
         FROM stop_times st JOIN trips t ON t.trip_id=st.trip_id
@@ -112,7 +115,7 @@ class TransitDatabase {
           (row['route_short_name'] as String).isNotEmpty
             ? row['route_short_name'] as String : row['route_long_name'] as String,
           destination: (row['trip_headsign'] as String).isNotEmpty
-            ? row['trip_headsign'] as String : row['route_long_name'] as String,
+            ? row['trip_headsign'] as String : (row['terminal_name'] as String? ?? row['route_long_name'] as String),
           serviceDate: key, tripStart: start,
           scheduled: serviceInstant(date, row['arrival_secs'] as int)));
       }
