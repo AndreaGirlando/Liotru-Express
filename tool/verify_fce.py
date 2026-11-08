@@ -30,6 +30,13 @@ try:
                 rows = list(csv.DictReader(io.TextIOWrapper(stream, encoding='utf-8-sig')))
             report['tables'][name] = {'rows': len(rows), 'sample': rows[:3]}
         print('FCE HTTP',report['status'],'ZIP',report['bytes'],'tables',len(report['tables']))
+    pdf_url = 'https://www.circumetnea.it/download/orario-metro/?wpdmdl=18207'
+    with urllib.request.urlopen(pdf_url + '&refresh=' + str(int(time.time())), timeout=30) as response:
+        pdf = response.read(3_000_001)
+        if len(pdf) > 3_000_000 or not pdf.startswith(b'%PDF-'):
+            raise ValueError('The current metro timetable is not a valid bounded PDF')
+        (OUT / 'official-metro.pdf').write_bytes(pdf)
+        report['metro_pdf'] = {'url': pdf_url, 'status': response.status, 'bytes': len(pdf)}
 except Exception as error:
     report['error'] = str(error)
     print('FCE source check:', str(error))
