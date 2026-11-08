@@ -169,7 +169,8 @@ class RealtimeFeed {
           final uncertainty =
               number(event?['uncertainty']) ??
               number(departure?['uncertainty']);
-          if (uncertainty != null && (uncertainty < 0 || uncertainty > maxUncertaintySeconds)) {
+          if (uncertainty != null &&
+              (uncertainty < 0 || uncertainty > maxUncertaintySeconds)) {
             delay = null;
             delayUncertainty = null;
             prediction = null;
@@ -213,12 +214,18 @@ class RealtimeFeed {
       // A fresh publication does not make a wrong-day ETA reliable. Reject
       // predictions far outside this trip's timetable or the live horizon.
       if (prediction != null &&
-          (prediction.difference(arrival.scheduled).abs() > const Duration(hours: 3) ||
+          (prediction.difference(arrival.scheduled).abs() >
+                  const Duration(hours: 3) ||
               prediction.difference(now) > const Duration(hours: 3))) {
         prediction = null;
       }
       result.add(
-        prediction == null ? arrival : arrival.withPrediction(prediction, uncertaintySeconds: predictionUncertainty),
+        prediction == null
+            ? arrival
+            : arrival.withPrediction(
+                prediction,
+                uncertaintySeconds: predictionUncertainty,
+              ),
       );
     }
     result.sort((a, b) => a.time.compareTo(b.time));

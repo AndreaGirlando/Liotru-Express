@@ -96,6 +96,7 @@ Future<void> checkDownload(
   );
   final button = find.text('Scarica e aggiorna dati');
   await tester.ensureVisible(button);
+  await tester.pumpAndSettle();
   await tester.tap(button);
   final watchTime = Stopwatch()..start();
   while (!completed.isCompleted &&
@@ -114,6 +115,8 @@ Future<void> checkDownload(
     expect(state.feed!.source, 'PREVIOUS VALID GTFS');
     await tester.pump(const Duration(seconds: 8));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.byType(SelectableText), 200);
+    await tester.pumpAndSettle();
     expect(
       tester.widget<SelectableText>(find.byType(SelectableText)).data,
       contains('HTTP 503'),
@@ -123,11 +126,15 @@ Future<void> checkDownload(
   } else {
     expect(find.text('Dati GTFS aggiornati.'), findsOneWidget);
     if (!invalidRealtime) {
-      await tester.ensureVisible(find.byType(Switch));
+      await tester.scrollUntilVisible(find.byType(Switch), -250);
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(Switch));
       await tester.pumpAndSettle();
       expect(state.preferences.realtimeEnabled, isFalse);
-      expect(UserPreferences(await SharedPreferences.getInstance()).realtimeEnabled, isFalse);
+      expect(
+        UserPreferences(await SharedPreferences.getInstance()).realtimeEnabled,
+        isFalse,
+      );
     }
   }
 }

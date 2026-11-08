@@ -16,6 +16,7 @@ class UserPreferences {
   Future<void> setRealtimeEnabled(bool value) async {
     await prefs.setBool('realtime_enabled', value);
   }
+
   Future<void> toggleFavorite(String id) async {
     final ids = favorites;
     ids.contains(id) ? ids.remove(id) : ids.add(id);

@@ -42,9 +42,7 @@ class RealtimeService {
       final valid = _cache?.freshAt(now) ?? false;
       return RealtimeResult(
         valid ? _cache : null,
-        valid
-            ? 'Previsioni ricevute da BusOne'
-            : _lastFailure,
+        valid ? 'Previsioni ricevute da BusOne' : _lastFailure,
       );
     }
     _lastAttempt = now;
@@ -98,19 +96,23 @@ class RealtimeService {
       // request. A fresh empty FULL_DATASET likewise replaces the old cache.
       _cache = null;
       _lastFailure = switch (e) {
-        TimeoutException() => 'BusOne non risponde in tempo. Orari programmati AMTS.',
-        HandshakeException() => 'Connessione sicura a BusOne non riuscita. Orari programmati AMTS.',
-        SocketException() => 'Impossibile contattare BusOne. Orari programmati AMTS.',
-        http.ClientException() => 'Connessione a BusOne non disponibile. Orari programmati AMTS.',
-        FormatException() when e.message.startsWith('HTTP ') => 'BusOne non disponibile (${e.message}). Orari programmati AMTS.',
-        FormatException() when e.message.contains('scaduti') => 'Le previsioni ricevute non sono aggiornate. Verifica anche data e ora del telefono. Orari programmati AMTS.',
-        FormatException() => 'Risposta BusOne non valida o non supportata. Orari programmati AMTS.',
+        TimeoutException() =>
+          'BusOne non risponde in tempo. Orari programmati AMTS.',
+        HandshakeException() =>
+          'Connessione sicura a BusOne non riuscita. Orari programmati AMTS.',
+        SocketException() =>
+          'Impossibile contattare BusOne. Orari programmati AMTS.',
+        http.ClientException() =>
+          'Connessione a BusOne non disponibile. Orari programmati AMTS.',
+        FormatException() when e.message.startsWith('HTTP ') =>
+          'BusOne non disponibile (${e.message}). Orari programmati AMTS.',
+        FormatException() when e.message.contains('scaduti') =>
+          'Le previsioni ricevute non sono aggiornate. Verifica anche data e ora del telefono. Orari programmati AMTS.',
+        FormatException() =>
+          'Risposta BusOne non valida o non supportata. Orari programmati AMTS.',
         _ => 'Tempo reale non disponibile. Orari programmati AMTS.',
       };
-      return RealtimeResult(
-        null,
-        _lastFailure,
-      );
+      return RealtimeResult(null, _lastFailure);
     }
   }
 }
