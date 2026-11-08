@@ -33,8 +33,7 @@ class _StopDetailState extends State<StopDetail> with WidgetsBindingObserver {
     timer = Timer.periodic(const Duration(seconds: 30), (_) {
       if (active &&
           (ModalRoute.of(context)?.isCurrent ?? false) &&
-          selected == null)
-        {
+          selected == null) {
         refresh();
       }
     });
@@ -92,8 +91,7 @@ class _StopDetailState extends State<StopDetail> with WidgetsBindingObserver {
                 a.time.isBefore(from.add(const Duration(hours: 24))),
           )
           .toList();
-      if (mounted && requested == selected)
-        {
+      if (mounted && requested == selected) {
         setState(() {
           arrivals = result;
           status = message;
@@ -104,8 +102,7 @@ class _StopDetailState extends State<StopDetail> with WidgetsBindingObserver {
         });
       }
     } catch (_) {
-      if (mounted)
-        {
+      if (mounted) {
         setState(() {
           error = 'Impossibile leggere gli orari. Riprova.';
           arrivals = [];

@@ -96,8 +96,7 @@ class _StopListState extends State<StopList> {
         controller.text.trim(),
         ids: widget.favorites ? widget.state.preferences.favorites : null,
       );
-      if (mounted && token == generation)
-        {
+      if (mounted && token == generation) {
         setState(() {
           stops = result;
           loading = false;
@@ -105,8 +104,7 @@ class _StopListState extends State<StopList> {
         });
       }
     } catch (_) {
-      if (mounted && token == generation)
-        {
+      if (mounted && token == generation) {
         setState(() {
           loading = false;
           error = 'Ricerca non riuscita. Riprova.';

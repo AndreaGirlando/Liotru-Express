@@ -79,8 +79,7 @@ class GtfsImporter {
         }
       }
       for (final name in ['agency', 'stops', 'routes', 'trips', 'stop_times']) {
-        if (!seen.contains('$name.txt'))
-          {
+        if (!seen.contains('$name.txt')) {
           throw FormatException('Manca $name.txt');
         }
       }
@@ -132,8 +131,7 @@ class GtfsImporter {
           throw FormatException('Intestazione non valida in $table.txt');
         }
       } else {
-        if (values.length != header.length)
-          {
+        if (values.length != header.length) {
           throw FormatException('Riga incompleta in $table.txt');
         }
         yield {
@@ -166,8 +164,7 @@ class GtfsImporter {
           throw const FormatException('Il feed deve usare il fuso Europe/Rome');
         }
       }
-      if (agencyCount == 0)
-        {
+      if (agencyCount == 0) {
         throw const FormatException('Nessuna agenzia nel feed');
       }
       await store.db.transaction((txn) async {
@@ -215,8 +212,7 @@ class GtfsImporter {
             );
           }
         }
-        if (maxSeconds == 0)
-          {
+        if (maxSeconds == 0) {
           throw const FormatException('Nessun orario utilizzabile');
         }
         for (final entry in {
@@ -278,8 +274,7 @@ class GtfsImporter {
         };
       case 'stop_times':
         final seq = int.tryParse(need('stop_sequence'));
-        if (seq == null || seq < 0)
-          {
+        if (seq == null || seq < 0) {
           throw const FormatException('stop_sequence non valido');
         }
         final arrival = time('arrival_time'),
@@ -297,8 +292,7 @@ class GtfsImporter {
         };
       case 'calendar':
         final start = date('start_date'), end = date('end_date');
-        if (start.compareTo(end) > 0)
-          {
+        if (start.compareTo(end) > 0) {
           throw const FormatException('Calendario invertito');
         }
         final days = <String, Object?>{};
@@ -311,8 +305,7 @@ class GtfsImporter {
           'saturday',
           'sunday',
         ]) {
-          if (!['0', '1'].contains(need(k)))
-            {
+          if (!['0', '1'].contains(need(k))) {
             throw const FormatException('Giorno calendario non valido');
           }
           days[k] = int.parse(need(k));
@@ -325,8 +318,7 @@ class GtfsImporter {
         };
       case 'calendar_dates':
         final type = int.tryParse(need('exception_type'));
-        if (type != 1 && type != 2)
-          {
+        if (type != 1 && type != 2) {
           throw const FormatException('Eccezione non valida');
         }
         return {

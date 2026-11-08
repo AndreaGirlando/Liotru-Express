@@ -43,8 +43,7 @@ class AppState extends ChangeNotifier {
   Future<void> sources(String static, String rt, bool enabled) async {
     if (static.trim().isNotEmpty) httpsUrl(static);
     if (rt.trim().isNotEmpty) httpsUrl(rt);
-    if (enabled && rt.trim().isEmpty)
-      {
+    if (enabled && rt.trim().isEmpty) {
       throw const FormatException('Inserisci l’URL TripUpdates JSON');
     }
     await preferences.setSources(static.trim(), rt.trim(), enabled);

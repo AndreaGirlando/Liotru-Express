@@ -19,8 +19,7 @@ class RealtimeFeed {
     if (root == null) throw const FormatException('JSON realtime non valido');
     final header = object(root['header']);
     final stamp = number(header?['timestamp']);
-    if (header == null || stamp == null)
-      {
+    if (header == null || stamp == null) {
       throw const FormatException('Timestamp realtime mancante');
     }
     final incrementality = header['incrementality'];
@@ -29,13 +28,11 @@ class RealtimeFeed {
       throw const FormatException('Feed incrementale non supportato');
     }
     final time = DateTime.fromMillisecondsSinceEpoch(stamp * 1000, isUtc: true);
-    if (!_fresh(time, now))
-      {
+    if (!_fresh(time, now)) {
       throw const FormatException('Dati realtime scaduti o con data futura');
     }
     final entities = root['entity'];
-    if (entities is! List)
-      {
+    if (entities is! List) {
       throw const FormatException('Elenco realtime mancante');
     }
     final updates = <Map<String, dynamic>>[];
@@ -49,8 +46,7 @@ class RealtimeFeed {
           !_fresh(
             DateTime.fromMillisecondsSinceEpoch(stamp * 1000, isUtc: true),
             now,
-          ))
-        {
+          )) {
         continue;
       }
       updates.add(u);
@@ -77,8 +73,8 @@ class RealtimeFeed {
           return false;
         }
         final trip = object(u['trip']);
-        if (trip == null || field(trip, 'tripId', 'trip_id') != arrival.tripId)
-          {
+        if (trip == null ||
+            field(trip, 'tripId', 'trip_id') != arrival.tripId) {
           return false;
         }
         final date = field(trip, 'startDate', 'start_date');
@@ -108,8 +104,7 @@ class RealtimeFeed {
         'scheduleRelationship',
         'schedule_relationship',
       );
-      if (relation(status, 'CANCELED', 3) || relation(status, 'DELETED', 7))
-        {
+      if (relation(status, 'CANCELED', 3) || relation(status, 'DELETED', 7)) {
         continue;
       }
       if (status != null && !relation(status, 'SCHEDULED', 0)) {

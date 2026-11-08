@@ -19,8 +19,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   );
   late bool enabled = widget.state.preferences.realtimeEnabled;
   void message(String text) {
-    if (mounted)
-      {
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
     }
   }
@@ -107,8 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     );
                     if (result == null) return;
                     final path = result.files.single.path;
-                    if (path == null)
-                      {
+                    if (path == null) {
                       throw const FormatException(
                         'File non accessibile: salvalo sul telefono e riprova',
                       );

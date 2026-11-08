@@ -21,6 +21,12 @@ e 386.071 passaggi alle fermate. Le 27 righe `calendar_dates` coprono date dal
 20 ottobre al 15 novembre 2026: fuori da questo calendario l’app non inventa
 giorni di servizio. Occorre aggiornare lo ZIP quando AMTS pubblica nuove date.
 
+Un secondo campione BusOne contiene 99 TripUpdates: tutti i `trip_id` e gli
+orari iniziali corrispondono allo statico AMTS; tutte le 2.728 coppie
+`stop_sequence`/`stop_id` corrispondono alle corse dichiarate. Alla data del
+campione 49 aggiornamenti individuali rientrano nei tre minuti di freschezza:
+la sola intestazione recente non rende affidabili tutti gli aggiornamenti.
+
 Il workflow GitHub Actions esegue `python3 tool/verify_sources.py` dalla rete del
 runner e conserva l’esito e le risposte nell’artefatto `verifica-fonti`.
 Il rapporto distingue errori HTTP, errori di rete, ZIP validi e JSON realtime.

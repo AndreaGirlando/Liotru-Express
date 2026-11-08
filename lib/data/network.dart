@@ -41,15 +41,13 @@ Future<void> downloadFile(
   try {
     while (true) {
       final remaining = const Duration(seconds: 90) - watch.elapsed;
-      if (remaining <= Duration.zero)
-        {
+      if (remaining <= Duration.zero) {
         throw TimeoutException('Download GTFS scaduto');
       }
       if (!await iterator.moveNext().timeout(remaining)) break;
       final chunk = iterator.current;
       length += chunk.length;
-      if (length > maxBytes)
-        {
+      if (length > maxBytes) {
         throw const FormatException('Risposta troppo grande');
       }
       await output.writeFrom(chunk);
@@ -72,13 +70,11 @@ Future<List<int>> readJsonBody(
   try {
     while (true) {
       final remaining = timeout - watch.elapsed;
-      if (remaining <= Duration.zero)
-        {
+      if (remaining <= Duration.zero) {
         throw TimeoutException('Download realtime scaduto');
       }
       if (!await iterator.moveNext().timeout(remaining)) break;
-      if (bytes.length + iterator.current.length > maxBytes)
-        {
+      if (bytes.length + iterator.current.length > maxBytes) {
         throw const FormatException('Risposta troppo grande');
       }
       bytes.addAll(iterator.current);
