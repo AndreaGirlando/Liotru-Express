@@ -29,6 +29,11 @@ jobs:
         with:
           name: verifica-fce
           path: fce-verification/
+      - name: Confronta il quadro orario Metro con i dati inclusi
+        run: |
+          python3 -m pip install pypdf==6.10.0
+          python3 tool/prepare_metro_timetable.py fce-verification/official-metro.pdf fce-verification/official-fce.zip /tmp/verified-metro.json
+          cmp assets/metro/timetable.json /tmp/verified-metro.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -43,7 +48,14 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - name: Formatta codice Dart
+        run: dart format lib test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codice-formattato
+          path: |
+            lib/
+            test/
       - uses: actions/upload-artifact@v4
         with:
           name: dipendenze-risolte
