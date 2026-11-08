@@ -44,12 +44,12 @@ jobs:
       - run: flutter analyze
       - run: flutter test --coverage
       - name: Importazione reale AMTS
-        if: hashFiles('source-verification/official-gtfs.zip') != ''
+        if: ${{ !cancelled() && hashFiles('source-verification/official-gtfs.zip') != '' }}
         env:
           CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
         run: flutter test test/official_feed_check.dart test/download_official_check.dart test/realtime_live_check.dart --reporter expanded
       - name: Anteprime Flutter con dati AMTS reali
-        if: hashFiles('source-verification/official-gtfs.zip') != ''
+        if: ${{ !cancelled() && hashFiles('source-verification/official-gtfs.zip') != '' }}
         env:
           CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
         run: flutter test --update-goldens test/visual_check.dart --reporter expanded
