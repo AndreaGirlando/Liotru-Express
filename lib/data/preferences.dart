@@ -6,8 +6,10 @@ class UserPreferences {
   List<String> get favorites => prefs.getStringList('favorites') ?? [];
   String get theme => prefs.getString('theme') ?? 'system';
   static const officialGtfsUrl = 'https://www.amts.ct.it/GTFS/AMTCT.zip';
-  static const busoneUrl = 'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
-  static const clientIdentity = 'CataniaBus/1.0; https://github.com/AndreaGirlando';
+  static const busoneUrl =
+      'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
+  static const clientIdentity =
+      'CataniaBus/1.0; https://github.com/AndreaGirlando';
   String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
   String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
   bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? false;
@@ -16,10 +18,14 @@ class UserPreferences {
     ids.contains(id) ? ids.remove(id) : ids.add(id);
     await prefs.setStringList('favorites', ids);
   }
-  Future<void> setTheme(String value) async { await prefs.setString('theme', value); }
+
+  Future<void> setTheme(String value) async {
+    await prefs.setString('theme', value);
+  }
+
   Future<void> setSources(String staticUrl, String rtUrl, bool enabled) async {
-    await prefs.setString('static_url',staticUrl);
-    await prefs.setString('realtime_url',rtUrl);
-    await prefs.setBool('realtime_enabled',enabled);
+    await prefs.setString('static_url', staticUrl);
+    await prefs.setString('realtime_url', rtUrl);
+    await prefs.setBool('realtime_enabled', enabled);
   }
 }

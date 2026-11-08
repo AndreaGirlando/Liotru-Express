@@ -22,42 +22,64 @@ class RealtimeService {
 
   // All screens share this rate limit. Manual refresh cannot bypass it.
   Future<RealtimeResult> fetch(String url, DateTime now) async {
-    if (url != _url) { _cache = null; _lastAttempt = null; _retryAfter = null; _url = url; }
+    if (url != _url) {
+      _cache = null;
+      _lastAttempt = null;
+      _retryAfter = null;
+      _url = url;
+    }
     if (_pending != null) return _pending!;
     if ((_retryAfter != null && now.isBefore(_retryAfter!)) ||
-        (_lastAttempt != null && now.difference(_lastAttempt!) < const Duration(seconds:60))) {
+        (_lastAttempt != null &&
+            now.difference(_lastAttempt!) < const Duration(seconds: 60))) {
       final valid = _cache?.freshAt(now) ?? false;
-      return RealtimeResult(valid ? _cache : null,
-        valid ? 'Dati realtime disponibili' : 'Tempo reale non disponibile: orari programmati');
+      return RealtimeResult(
+        valid ? _cache : null,
+        valid
+            ? 'Dati realtime disponibili'
+            : 'Tempo reale non disponibile: orari programmati',
+      );
     }
     _lastAttempt = now;
     final pending = _download(url, now);
     _pending = pending;
-    try { return await pending; } finally { _pending = null; }
+    try {
+      return await pending;
+    } finally {
+      _pending = null;
+    }
   }
 
   Future<RealtimeResult> _download(String url, DateTime now) async {
     try {
       final request = http.Request('GET', httpsUrl(url));
-      request.headers.addAll({'X-BusOne-Client':UserPreferences.clientIdentity,
-        'X-BusOne-Use':'personal','Accept':'application/json'});
-      final response = await client.send(request)
-          .timeout(const Duration(seconds:12));
+      request.headers.addAll({
+        'X-BusOne-Client': UserPreferences.clientIdentity,
+        'X-BusOne-Use': 'personal',
+        'Accept': 'application/json',
+      });
+      final response = await client
+          .send(request)
+          .timeout(const Duration(seconds: 12));
       if (response.statusCode != 200) {
         final retry = response.headers['retry-after'];
-        if(retry != null) {
+        if (retry != null) {
           final seconds = int.tryParse(retry);
-          if(seconds != null && seconds > 0) {
-            _retryAfter = now.add(Duration(seconds:seconds));
+          if (seconds != null && seconds > 0) {
+            _retryAfter = now.add(Duration(seconds: seconds));
           } else {
-            try { _retryAfter = HttpDate.parse(retry); } catch(_) { /* Invalid HTTP date. */ }
+            try {
+              _retryAfter = HttpDate.parse(retry);
+            } catch (_) {
+              /* Invalid HTTP date. */
+            }
           }
         }
-        await response.stream.listen((_){}).cancel();
+        await response.stream.listen((_) {}).cancel();
         throw FormatException('HTTP ${response.statusCode}');
       }
-      if ((response.contentLength ?? 0) > 10*1024*1024) {
-        await response.stream.listen((_){}).cancel();
+      if ((response.contentLength ?? 0) > 10 * 1024 * 1024) {
+        await response.stream.listen((_) {}).cancel();
         throw const FormatException('Risposta troppo grande');
       }
       final bytes = await readJsonBody(response.stream);
@@ -68,7 +90,10 @@ class RealtimeService {
       // Never continue displaying a successful previous result after a failed
       // request. A fresh empty FULL_DATASET likewise replaces the old cache.
       _cache = null;
-      return const RealtimeResult(null, 'Tempo reale non disponibile: orari programmati');
+      return const RealtimeResult(
+        null,
+        'Tempo reale non disponibile: orari programmati',
+      );
     }
   }
 }

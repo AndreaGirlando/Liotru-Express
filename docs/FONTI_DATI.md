@@ -16,6 +16,11 @@ Gli URL verificati sono precompilati nelle impostazioni. Non vengono incorporati
 dati di prova o previsioni simulate. Lo ZIP viene scaricato su richiesta dell’utente;
 è sempre disponibile l’importazione manuale come fallback.
 
+Il campione ufficiale scaricato contiene 1.418 fermate, 53 linee, 15.769 corse
+e 386.071 passaggi alle fermate. Le 27 righe `calendar_dates` coprono date dal
+20 ottobre al 15 novembre 2026: fuori da questo calendario l’app non inventa
+giorni di servizio. Occorre aggiornare lo ZIP quando AMTS pubblica nuove date.
+
 Il workflow GitHub Actions esegue `python3 tool/verify_sources.py` dalla rete del
 runner e conserva l’esito e le risposte nell’artefatto `verifica-fonti`.
 Il rapporto distingue errori HTTP, errori di rete, ZIP validi e JSON realtime.
