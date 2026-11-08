@@ -1,0 +1,52 @@
+name: Verifica e APK Android
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verifica fonti pubbliche
+        run: python3 tool/verify_sources.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verifica-fonti
+          path: source-verification/
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dipendenze-risolte
+          path: pubspec.lock
+      - run: flutter analyze
+      - run: flutter test --coverage
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CataniaBus-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
