@@ -7,6 +7,7 @@ import '../domain/models.dart';
 import 'design.dart';
 import 'settings.dart';
 import 'routes.dart';
+import 'metro.dart';
 import 'stop_detail.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -27,17 +28,18 @@ class _HomeScreenState extends State<HomeScreen> {
           widget.state,
           favorites: true,
           onSearch: () => setState(() => index = 1),
-          onSettings: () => setState(() => index = 3),
+          onSettings: () => setState(() => index = 4),
         ),
         1 => StopList(
           widget.state,
           favorites: false,
-          onSettings: () => setState(() => index = 3),
+          onSettings: () => setState(() => index = 4),
         ),
         2 => RouteList(
           widget.state,
-          onSettings: () => setState(() => index = 3),
+          onSettings: () => setState(() => index = 4),
         ),
+        3 => MetroScreen(widget.state),
         _ => SettingsScreen(widget.state),
       },
     ),
@@ -64,6 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.directions_bus_outlined),
             selectedIcon: Icon(Icons.directions_bus_rounded),
             label: 'Autobus',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.subway_outlined),
+            selectedIcon: Icon(Icons.subway_rounded),
+            label: 'Metro',
           ),
           NavigationDestination(
             icon: Icon(Icons.tune_rounded),

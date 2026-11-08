@@ -26,8 +26,8 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
-   Per la versione 2.1, finché la relativa pull request non è unita a `main`,
-   seleziona `codex/search-bus` (`git switch codex/search-bus`).
+   Per la versione 2.2, finché la relativa pull request non è unita a `main`,
+   seleziona `codex/metro-fce` (`git switch codex/metro-fce`).
 4. Esegui:
 
 ```sh
@@ -134,6 +134,46 @@ Se il fornitore omette `direction_id`, l’app distingue le varianti per percors
 e destinazione, senza inventare Andata e Ritorno. I valori GTFS 0 e 1 sono
 presentati come Andata e Ritorno; il verso geografico è chiarito dai capolinea.
 
+## Metro FCE (2.2)
+
+La nuova scheda **Metro** permette di scegliere una delle 12 stazioni e vedere
+le prossime attese verso **Monte Po** e **Stesicoro**, contemporaneamente. La
+stazione scelta resta salvata sul telefono. Il conto alla rovescia si aggiorna
+ogni secondo, funziona offline e si ferma uscendo dalla scheda o sospendendo l’app.
+Ai capolinea viene indicata la sola direzione utile per partire.
+
+**Sono stime da orario, non dati live.** Nel codice pubblico di
+[FCE Quando](https://github.com/sonobongo/fcequando_bot/tree/4301a301b5b2d5bf96f3a3bc332cd76cec6f2744)
+non è stata trovata un’API di arrivi: il bot usa propri orari e misurazioni locali.
+Nessun codice o dato di misurazione del bot è stato copiato.
+
+Le partenze sono estratte dal [quadro orario ufficiale FCE](https://www.circumetnea.it/download/orario-metro/),
+pubblicato il 3 settembre 2026 e verificato l’8 novembre. Alle stazioni intermedie
+si aggiungono i tempi relativi del GTFS FCE pubblicato: il suo calendario è fermo
+al **28 febbraio 2025**, nonostante il titolo della pagina indichi il 2028.
+Il vecchio GTFS viene usato solo per le durate fra stazioni: i suoi calendari
+non vengono estesi né usati per attivare corse attuali.
+Questi tempi storici possono essere imprecisi: la limitazione è sempre visibile
+nella scheda, con ulteriori dettagli in **Fonti e limiti delle stime**.
+Non vengono rilevati ritardi, soppressioni o modifiche straordinarie. Il conto
+alla rovescia non rappresenta la posizione di un treno. Eventi e festività locali
+richiedono la consultazione degli avvisi FCE.
+
+Il modello distingue lunedì–giovedì, venerdì, sabato, domenica e festività nazionali,
+comprese Pasqua e Pasquetta. Le partenze oltre mezzanotte restano associate al
+giorno di servizio precedente. Gli orari lontani mostrano giorno e ora.
+
+I dati sono inclusi in `assets/metro/timetable.json` con URL e SHA-256 delle fonti.
+La CI scarica PDF e GTFS dalla rete del runner e li confronta con i dati inclusi,
+verificando tutte le partenze, i 20 minuti complessivi pubblicati e le 12 stazioni.
+Il generatore `tool/prepare_metro_timetable.py` richiede `pypdf==6.10.0`; un PDF
+con digest diverso richiede revisione del contenuto prima di aggiornare i dati.
+Un aggiornamento dell’orario Metro viene distribuito con una nuova versione
+APK; il pulsante di aggiornamento GTFS nelle impostazioni riguarda gli autobus.
+Dopo 30 giorni dalla verifica, la scheda invita a controllare eventuali variazioni.
+L’app è indipendente da FCE e FCE Quando. Non viene dichiarata una licenza aperta
+per il GTFS FCE: l’app resta destinata all’uso personale.
+
 ## Attivare il tempo reale
 
 L’endpoint [BusOne](https://proxy.busone.app/amts/) verificato è già inserito:
@@ -180,6 +220,7 @@ rispetto all’orario programmato.
 | Preferiti, tema e fonti | `lib/data/preferences.dart` |
 | Home, ricerca, dettaglio e impostazioni | `lib/ui/` |
 | Ricerca linee, direzioni e fermate del percorso | `lib/ui/routes.dart`, `lib/data/database.dart` |
+| Attese Metro FCE e calendario | `lib/ui/metro.dart`, `lib/domain/metro.dart` |
 | Vista arrivi, caricamento offline immediato e copertura realtime | `lib/ui/arrivals_controller.dart` |
 | Giorno/ora e contatori limitati agli arrivi vicini | `lib/domain/arrival_display.dart` |
 | Verifica fonti e build Android | `tool/verify_sources.py`, `.github/workflows/android.yml` |

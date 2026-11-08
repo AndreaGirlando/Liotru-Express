@@ -9,9 +9,14 @@ class UserPreferences {
   static const busoneUrl =
       'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
   static const clientIdentity =
-      'CataniaBus/2.1; https://github.com/AndreaGirlando';
+      'CataniaBus/2.2; https://github.com/AndreaGirlando';
   String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
   String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
+  String get metroStation => prefs.getString('metro_station') ?? '1663';
+  Future<void> setMetroStation(String id) async {
+    await prefs.setString('metro_station', id);
+  }
+
   bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? true;
   Future<void> setRealtimeEnabled(bool value) async {
     await prefs.setBool('realtime_enabled', value);
