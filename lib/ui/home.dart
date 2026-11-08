@@ -114,7 +114,7 @@ class _StopListState extends State<StopList> {
         title: info == null ? 'Partiamo dagli orari.' : widget.favorites ? 'I tuoi posti, a un tocco.' : 'Nessuna fermata trovata',
         message: info == null ? 'Scarica i dati ufficiali AMTS per cercare fermate e consultare gli orari offline.' : widget.favorites ? 'Cerca una fermata e salvala con la stella. Qui ritroverai subito i suoi arrivi.' : 'Prova un altro nome o il codice della fermata.',
         action: info == null ? FilledButton.icon(onPressed: widget.onSettings, icon: const Icon(Icons.download_rounded), label: const Text('Carica gli orari AMTS')) : widget.favorites ? FilledButton.icon(onPressed: widget.onSearch, icon: const Icon(Icons.search), label: const Text('Cerca una fermata')) : null,
-      ))))
+      )))
       else SliverPadding(padding: const EdgeInsets.fromLTRB(22, 0, 22, 24), sliver: SliverList.builder(itemCount: stops.length, itemBuilder: (context, i) => Padding(padding: const EdgeInsets.only(bottom: 12), child: StopCard(widget.state, stops[i])))),
       if (info != null) SliverToBoxAdapter(child: Padding(padding: const EdgeInsets.fromLTRB(24, 0, 24, 22), child: Text('Orari ufficiali AMTS · aggiornati il ${displayDate(info.importedAt)}', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)))),
     ]);

@@ -37,7 +37,10 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Formatta codice Dart
-        run: dart format lib test
+        run: |
+          dart format lib test
+          dart fix --apply --code=curly_braces_in_flow_control_structures
+          dart format lib test
       - uses: actions/upload-artifact@v4
         with:
           name: codice-formattato
