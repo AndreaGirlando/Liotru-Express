@@ -193,7 +193,7 @@ class GtfsImporter {
                 if (n != null && n > maxSeconds) maxSeconds = n;
               }
             }
-            final end = (data['end_date'] ?? data['date']) as String?;
+            final end = (table == 'calendar' ? data['end_date'] : table == 'calendar_dates' && data['exception_type'] == 1 ? data['date'] : null) as String?;
             if (end != null && end.compareTo(endDate) > 0) endDate = end;
             batch.insert(table, data);
             count++;

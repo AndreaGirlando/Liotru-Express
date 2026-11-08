@@ -6,6 +6,15 @@ import '../app_state.dart';
 import '../data/preferences.dart';
 import 'design.dart';
 import 'home.dart';
+import 'app_chrome.dart';
+import 'metro_info.dart';
+
+class SettingsPage extends StatelessWidget {
+  const SettingsPage(this.state, {super.key});
+  final AppState state;
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: const AppTopBar(section: 'Impostazioni', showBack: true), body: SafeArea(top: false, child: SettingsScreen(state)));
+}
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen(this.state, {super.key});
@@ -80,21 +89,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return ListView(
         padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
         children: [
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: SmallPill('CATANIABUS 2.2', icon: Icons.tune_rounded),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Tutto sotto\ncontrollo.',
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
+          Text('Dati e preferenze', style: Theme.of(context).textTheme.headlineMedium),
           const SizedBox(height: 10),
-          Text(
-            'Orari, previsioni e un’app come piace a te.',
-            style: TextStyle(color: colors.onSurfaceVariant),
-          ),
-          const SizedBox(height: 26),
+          Text('Orari aggiornati, previsioni e un’app come piace a te.', style: TextStyle(color: colors.onSurfaceVariant)),
+          const SizedBox(height: 24),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +163,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Fermate e orari AMTS restano sul telefono. Aggiorna i dati quando viene pubblicato un nuovo calendario.',
+                  'Fermate e orari AMTS si scaricano al primo avvio e si aggiornano automaticamente alla scadenza, senza interrompere l’uso dell’app.',
                   style: TextStyle(
                     color: colors.onSurfaceVariant,
                     height: 1.55,
@@ -235,7 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: const Icon(Icons.folder_open_rounded),
                   label: const Text('Importa ZIP dal telefono'),
                 ),
-                if (busy) ...[
+                if (busy && !(widget.state.automaticUpdating && info != null)) ...[
                   const SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
@@ -295,6 +293,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 18),
+          const MetroInfoPanel(),
           const SizedBox(height: 18),
           SurfaceCard(
             padding: EdgeInsets.zero,

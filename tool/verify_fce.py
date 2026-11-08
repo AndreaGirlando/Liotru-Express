@@ -14,7 +14,7 @@ OUT.mkdir(exist_ok=True)
 URL = 'https://www.circumetnea.it/download/general-transit-feed-specification-fce-01-02-2025-28-02-2028/?wpdmdl=17798'
 report = {'checked_at': datetime.now(timezone.utc).isoformat(), 'url': URL}
 try:
-    request = urllib.request.Request(URL + '&refresh=' + str(int(time.time())), headers={'User-Agent': 'CataniaBus-personal-source-check/2.2'})
+    request = urllib.request.Request(URL + '&refresh=' + str(int(time.time())), headers={'User-Agent': 'CataniaBus-personal-source-check/2.3'})
     with urllib.request.urlopen(request, timeout=30) as response:
         data = response.read(30_000_001)
         if len(data) > 30_000_000:

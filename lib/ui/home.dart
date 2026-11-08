@@ -9,77 +9,104 @@ import 'settings.dart';
 import 'routes.dart';
 import 'metro.dart';
 import 'stop_detail.dart';
+import 'app_chrome.dart';
+import 'initial_download.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen(this.state, {super.key});
+  const HomeScreen(this.state, {this.autoRefresh = true, super.key});
   final AppState state;
+  final bool autoRefresh;
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int index = 0;
+  bool continueWithoutData = false;
+  Timer? expiryCheck;
+  void checkData() {
+    if (widget.autoRefresh) unawaited(widget.state.refreshScheduleIfNeeded());
+  }
+  void startChecks() {
+    expiryCheck?.cancel();
+    if (widget.autoRefresh) expiryCheck = Timer.periodic(const Duration(minutes: 1), (_) => checkData());
+  }
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      bottom: false,
-      child: switch (index) {
-        0 => StopList(
-          widget.state,
-          favorites: true,
-          onSearch: () => setState(() => index = 1),
-          onSettings: () => setState(() => index = 4),
-        ),
-        1 => StopList(
-          widget.state,
-          favorites: false,
-          onSettings: () => setState(() => index = 4),
-        ),
-        2 => RouteList(
-          widget.state,
-          onSettings: () => setState(() => index = 4),
-        ),
-        3 => MetroScreen(widget.state),
-        _ => SettingsScreen(widget.state),
-      },
-    ),
-    bottomNavigationBar: Container(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
-        ),
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    startChecks();
+    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) checkData(); });
+  }
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) { checkData(); startChecks(); } else { expiryCheck?.cancel(); }
+  }
+  @override
+  void dispose() { expiryCheck?.cancel(); WidgetsBinding.instance.removeObserver(this); super.dispose(); }
+  void settings() => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => SettingsPage(widget.state)));
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(listenable: widget.state, builder: (context, _) {
+    final initial = widget.autoRefresh && widget.state.feed == null && !continueWithoutData;
+    return Scaffold(
+      appBar: AppTopBar(section: initial ? 'Benvenuto a bordo' : ['I tuoi preferiti', 'Bus · fermate e linee', 'Metro FCE'][index], onSettings: settings),
+      body: SafeArea(top: false, bottom: false, child: initial
+        ? InitialDownload(busy: widget.state.importing, progress: widget.state.progress, fraction: widget.state.downloadProgress, error: widget.state.automaticFailed ? widget.state.automaticMessage : null, onRetry: () => unawaited(widget.state.refreshScheduleIfNeeded(force: true)), onContinue: () => setState(() => continueWithoutData = true))
+        : Column(children: [
+          if (widget.state.automaticMessage != null) DataUpdateNotice(widget.state),
+          Expanded(child: switch (index) {
+            0 => StopList(widget.state, favorites: true, onSearch: () => setState(() => index = 1), onSettings: settings),
+            1 => ExploreScreen(widget.state, onSettings: settings),
+            _ => MetroScreen(widget.state),
+          }),
+        ])),
+      bottomNavigationBar: initial ? null : Container(
+        decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant))),
+        child: NavigationBar(selectedIndex: index, onDestinationSelected: (value) => setState(() => index = value), destinations: const [
+          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
+          NavigationDestination(icon: Icon(Icons.search_rounded), label: 'Bus'),
+          NavigationDestination(icon: Icon(Icons.subway_outlined), selectedIcon: Icon(Icons.subway_rounded), label: 'Metro'),
+        ]),
       ),
-      child: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (value) => setState(() => index = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.bookmark_outline_rounded),
-            selectedIcon: Icon(Icons.bookmark_rounded),
-            label: 'Preferiti',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.search_rounded),
-            label: 'Fermate',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.directions_bus_outlined),
-            selectedIcon: Icon(Icons.directions_bus_rounded),
-            label: 'Autobus',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.subway_outlined),
-            selectedIcon: Icon(Icons.subway_rounded),
-            label: 'Metro',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.tune_rounded),
-            label: 'Impostazioni',
-          ),
-        ],
-      ),
-    ),
-  );
+    );
+  });
+}
+
+class ExploreScreen extends StatefulWidget {
+  const ExploreScreen(this.state, {this.onSettings, super.key});
+  final AppState state;
+  final VoidCallback? onSettings;
+  @override
+  State<ExploreScreen> createState() => _ExploreScreenState();
+}
+
+class _ExploreScreenState extends State<ExploreScreen> {
+  bool lines = false;
+  @override
+  Widget build(BuildContext context) => Column(children: [
+    Padding(padding: const EdgeInsets.fromLTRB(22, 12, 22, 4), child: SizedBox(width: double.infinity, child: SegmentedButton<bool>(
+      segments: const [ButtonSegment(value: false, label: Text('Per fermata'), icon: Icon(Icons.location_on_outlined)), ButtonSegment(value: true, label: Text('Per linea'), icon: Icon(Icons.alt_route_rounded))],
+      selected: {lines}, onSelectionChanged: (value) => setState(() => lines = value.single),
+    ))),
+    Expanded(child: lines ? RouteList(widget.state, compact: true, onSettings: widget.onSettings) : StopList(widget.state, favorites: false, compact: true, onSettings: widget.onSettings)),
+  ]);
+}
+
+class DataUpdateNotice extends StatelessWidget {
+  const DataUpdateNotice(this.state, {super.key});
+  final AppState state;
+  @override
+  Widget build(BuildContext context) => Semantics(liveRegion: true, child: Container(
+    key: const Key('data-update-notice'), width: double.infinity, padding: const EdgeInsets.fromLTRB(16, 10, 6, 10),
+    color: state.automaticFailed || state.feedExpired ? Theme.of(context).colorScheme.errorContainer : Theme.of(context).colorScheme.primary.withValues(alpha: .07),
+    child: Row(children: [
+      Icon(state.automaticUpdating ? Icons.sync_rounded : state.automaticFailed ? Icons.cloud_off_outlined : Icons.info_outline_rounded, size: 20),
+      const SizedBox(width: 10),
+      Expanded(child: Text(state.automaticMessage!, style: const TextStyle(fontSize: 12))),
+      if (state.automaticFailed && !state.importing) IconButton(tooltip: 'Riprova aggiornamento', onPressed: () => unawaited(state.refreshScheduleIfNeeded(force: true)), icon: const Icon(Icons.refresh_rounded)),
+      IconButton(tooltip: 'Chiudi avviso', onPressed: state.dismissAutomaticMessage, icon: const Icon(Icons.close_rounded), iconSize: 18),
+    ]),
+  ));
 }
 
 class StopList extends StatefulWidget {
@@ -88,10 +115,12 @@ class StopList extends StatefulWidget {
     required this.favorites,
     this.onSearch,
     this.onSettings,
+    this.compact = false,
     super.key,
   });
   final AppState state;
   final bool favorites;
+  final bool compact;
   final VoidCallback? onSearch, onSettings;
   @override
   State<StopList> createState() => _StopListState();
@@ -175,45 +204,6 @@ class _StopListState extends State<StopList> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 39,
-                      height: 39,
-                      decoration: BoxDecoration(
-                        color: BusDesign.ink,
-                        borderRadius: BorderRadius.circular(13),
-                      ),
-                      child: const Icon(
-                        Icons.directions_bus_rounded,
-                        color: BusDesign.lime,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text.rich(
-                        TextSpan(
-                          children: [
-                            const TextSpan(text: 'catania'),
-                            const TextSpan(
-                              text: 'bus',
-                              style: TextStyle(color: BusDesign.teal),
-                            ),
-                          ],
-                        ),
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                    if (MediaQuery.sizeOf(context).width > 390 &&
-                        MediaQuery.textScalerOf(context).scale(12) < 18)
-                      const SmallPill(
-                        'AMTS CATANIA',
-                        icon: Icons.location_on_outlined,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 25),
                 if (widget.favorites) ...[
                   Container(
                     width: double.infinity,
@@ -290,6 +280,7 @@ class _StopListState extends State<StopList> {
                     ),
                   ),
                 ] else ...[
+                  if (!widget.compact) ...[
                   Text(
                     'Trova la tua\nfermata.',
                     style: Theme.of(context).textTheme.headlineLarge,
@@ -302,6 +293,7 @@ class _StopListState extends State<StopList> {
                     ),
                   ),
                   const SizedBox(height: 22),
+                  ],
                   TextField(
                     controller: controller,
                     onChanged: (_) {
@@ -346,7 +338,7 @@ class _StopListState extends State<StopList> {
                     fontSize: 13,
                   ),
                 ),
-                if (expired) ...[
+                if (expired && widget.state.automaticMessage == null) ...[
                   const SizedBox(height: 14),
                   _DataNotice(onTap: widget.onSettings),
                 ],

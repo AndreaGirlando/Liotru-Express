@@ -71,7 +71,9 @@ void main() {
       ),
     );
     await settleDatabase(tester);
-    await tester.tap(find.text('Autobus'));
+    await tester.tap(find.text('Bus'));
+    await settleDatabase(tester);
+    await tester.tap(find.text('Per linea'));
     await settleDatabase(tester);
     await tester.enterText(find.byType(TextField), 'metro');
     await tester.pump(const Duration(milliseconds: 300));

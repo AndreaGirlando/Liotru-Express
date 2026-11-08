@@ -4,11 +4,13 @@ import '../app_state.dart';
 import '../domain/models.dart';
 import 'design.dart';
 import 'stop_detail.dart';
+import 'app_chrome.dart';
 
 class RouteList extends StatefulWidget {
-  const RouteList(this.state, {this.onSettings, super.key});
+  const RouteList(this.state, {this.onSettings, this.compact = false, super.key});
   final AppState state;
   final VoidCallback? onSettings;
+  final bool compact;
   @override
   State<RouteList> createState() => _RouteListState();
 }
@@ -72,6 +74,7 @@ class _RouteListState extends State<RouteList> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (!widget.compact) ...[
               const SmallPill(
                 'RICERCA PER AUTOBUS',
                 icon: Icons.directions_bus_rounded,
@@ -90,6 +93,7 @@ class _RouteListState extends State<RouteList> {
                 ),
               ),
               const SizedBox(height: 22),
+              ],
               TextField(
                 controller: input,
                 textInputAction: TextInputAction.search,
@@ -221,7 +225,7 @@ class _RouteDetailState extends State<RouteDetail> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Fermate dell’autobus')),
+    appBar: AppTopBar(section: 'Linea ${widget.route.label}', showBack: true),
     body: FutureBuilder<List<RoutePattern>>(
       future: future,
       builder: (context, snapshot) {
