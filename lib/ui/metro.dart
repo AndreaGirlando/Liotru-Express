@@ -150,7 +150,6 @@ class _MetroScreenState extends State<MetroScreen> with WidgetsBindingObserver {
               ),
             ),
           ],
-
         ],
       );
     },

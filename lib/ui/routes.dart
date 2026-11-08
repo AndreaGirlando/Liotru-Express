@@ -7,7 +7,12 @@ import 'stop_detail.dart';
 import 'app_chrome.dart';
 
 class RouteList extends StatefulWidget {
-  const RouteList(this.state, {this.onSettings, this.compact = false, super.key});
+  const RouteList(
+    this.state, {
+    this.onSettings,
+    this.compact = false,
+    super.key,
+  });
   final AppState state;
   final VoidCallback? onSettings;
   final bool compact;
@@ -75,24 +80,24 @@ class _RouteListState extends State<RouteList> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!widget.compact) ...[
-              const SmallPill(
-                'RICERCA PER AUTOBUS',
-                icon: Icons.directions_bus_rounded,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Dove passa\nil tuo bus?',
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Scegli la linea e scopri tutte le fermate, all’andata e al ritorno.',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.5,
+                const SmallPill(
+                  'RICERCA PER AUTOBUS',
+                  icon: Icons.directions_bus_rounded,
                 ),
-              ),
-              const SizedBox(height: 22),
+                const SizedBox(height: 20),
+                Text(
+                  'Dove passa\nil tuo bus?',
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Scegli la linea e scopri tutte le fermate, all’andata e al ritorno.',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 22),
               ],
               TextField(
                 controller: input,

@@ -94,7 +94,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Come funzionano le stime Metro'));
       await tester.pumpAndSettle();
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
       await tester.pump();
       expect(find.textContaining('28/02/2025'), findsOneWidget);
       expect(tester.takeException(), isNull);

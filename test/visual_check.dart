@@ -156,17 +156,30 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(MaterialApp(
-      theme: BusDesign.theme(Brightness.light),
-      home: RepaintBoundary(key: const Key('initial-preview'), child: Scaffold(
-        appBar: const AppTopBar(section: 'Benvenuto a bordo'),
-        body: InitialDownload(busy: true, progress: 'Scaricamento degli orari AMTS…', fraction: .46, onRetry: () {}, onContinue: () {}),
-      )),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: BusDesign.theme(Brightness.light),
+        home: RepaintBoundary(
+          key: const Key('initial-preview'),
+          child: Scaffold(
+            appBar: const AppTopBar(section: 'Benvenuto a bordo'),
+            body: InitialDownload(
+              busy: true,
+              progress: 'Scaricamento degli orari AMTS…',
+              fraction: .46,
+              onRetry: () {},
+              onContinue: () {},
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 900));
     expect(tester.takeException(), isNull);
-    await expectLater(find.byKey(const Key('initial-preview')), matchesGoldenFile('previews/first-download.png'));
+    await expectLater(
+      find.byKey(const Key('initial-preview')),
+      matchesGoldenFile('previews/first-download.png'),
+    );
     await tester.pumpWidget(const SizedBox.shrink());
   });
-
 }

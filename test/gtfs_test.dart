@@ -67,9 +67,13 @@ void main() {
     },
   );
   test('future removals do not extend the timetable expiry date', () async {
-    final zip = await fixtureZip(directory, override: {
-      'calendar_dates': 'service_id,date,exception_type\nDAILY,20271108,2\nEXTRA,20261108,1\n',
-    });
+    final zip = await fixtureZip(
+      directory,
+      override: {
+        'calendar_dates':
+            'service_id,date,exception_type\nDAILY,20271108,2\nEXTRA,20261108,1\n',
+      },
+    );
     await GtfsImporter(database).importZip(zip.path, source: 'SYNTHETIC');
     expect((await database.info())!.endDate, '20261231');
   });

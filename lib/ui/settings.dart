@@ -13,7 +13,10 @@ class SettingsPage extends StatelessWidget {
   const SettingsPage(this.state, {super.key});
   final AppState state;
   @override
-  Widget build(BuildContext context) => Scaffold(appBar: const AppTopBar(section: 'Impostazioni', showBack: true), body: SafeArea(top: false, child: SettingsScreen(state)));
+  Widget build(BuildContext context) => Scaffold(
+    appBar: const AppTopBar(section: 'Impostazioni', showBack: true),
+    body: SafeArea(top: false, child: SettingsScreen(state)),
+  );
 }
 
 class SettingsScreen extends StatefulWidget {
@@ -89,9 +92,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return ListView(
         padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
         children: [
-          Text('Dati e preferenze', style: Theme.of(context).textTheme.headlineMedium),
+          Text(
+            'Dati e preferenze',
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
           const SizedBox(height: 10),
-          Text('Orari aggiornati, previsioni e un’app come piace a te.', style: TextStyle(color: colors.onSurfaceVariant)),
+          Text(
+            'Orari aggiornati, previsioni e un’app come piace a te.',
+            style: TextStyle(color: colors.onSurfaceVariant),
+          ),
           const SizedBox(height: 24),
           SurfaceCard(
             child: Column(
@@ -233,7 +242,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: const Icon(Icons.folder_open_rounded),
                   label: const Text('Importa ZIP dal telefono'),
                 ),
-                if (busy && !(widget.state.automaticUpdating && info != null)) ...[
+                if (busy &&
+                    !(widget.state.automaticUpdating && info != null)) ...[
                   const SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),

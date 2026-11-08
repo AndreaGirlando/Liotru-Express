@@ -15,11 +15,18 @@ class UserPreferences {
   String get metroStation => prefs.getString('metro_station') ?? '1663';
   DateTime? get nextAutomaticUpdate {
     final stamp = prefs.getInt('next_automatic_update');
-    return stamp == null ? null : DateTime.fromMillisecondsSinceEpoch(stamp, isUtc: true);
+    return stamp == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(stamp, isUtc: true);
   }
+
   Future<void> setNextAutomaticUpdate(DateTime value) async {
-    await prefs.setInt('next_automatic_update', value.toUtc().millisecondsSinceEpoch);
+    await prefs.setInt(
+      'next_automatic_update',
+      value.toUtc().millisecondsSinceEpoch,
+    );
   }
+
   Future<void> setMetroStation(String id) async {
     await prefs.setString('metro_station', id);
   }

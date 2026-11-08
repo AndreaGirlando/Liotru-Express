@@ -42,9 +42,19 @@ class TransitDatabase {
     await db.execute('ATTACH DATABASE ? AS incoming_feed', [path]);
     try {
       await db.transaction((txn) async {
-        for (final table in ['stops', 'routes', 'trips', 'stop_times', 'calendar', 'calendar_dates', 'metadata']) {
+        for (final table in [
+          'stops',
+          'routes',
+          'trips',
+          'stop_times',
+          'calendar',
+          'calendar_dates',
+          'metadata',
+        ]) {
           await txn.delete(table);
-          await txn.execute('INSERT INTO main.$table SELECT * FROM incoming_feed.$table');
+          await txn.execute(
+            'INSERT INTO main.$table SELECT * FROM incoming_feed.$table',
+          );
         }
       });
     } finally {

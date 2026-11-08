@@ -27,49 +27,137 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void checkData() {
     if (widget.autoRefresh) unawaited(widget.state.refreshScheduleIfNeeded());
   }
+
   void startChecks() {
     expiryCheck?.cancel();
-    if (widget.autoRefresh) expiryCheck = Timer.periodic(const Duration(minutes: 1), (_) => checkData());
+    if (widget.autoRefresh) {
+      expiryCheck = Timer.periodic(
+        const Duration(minutes: 1),
+        (_) => checkData(),
+      );
+    }
   }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     startChecks();
-    WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) checkData(); });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) checkData();
+    });
   }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) { checkData(); startChecks(); } else { expiryCheck?.cancel(); }
+    if (state == AppLifecycleState.resumed) {
+      checkData();
+      startChecks();
+    } else {
+      expiryCheck?.cancel();
+    }
   }
+
   @override
-  void dispose() { expiryCheck?.cancel(); WidgetsBinding.instance.removeObserver(this); super.dispose(); }
-  void settings() => Navigator.push(context, MaterialPageRoute<void>(builder: (_) => SettingsPage(widget.state)));
+  void dispose() {
+    expiryCheck?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void settings() => Navigator.push(
+    context,
+    MaterialPageRoute<void>(builder: (_) => SettingsPage(widget.state)),
+  );
   @override
-  Widget build(BuildContext context) => ListenableBuilder(listenable: widget.state, builder: (context, _) {
-    final initial = widget.autoRefresh && widget.state.feed == null && !continueWithoutData;
-    return Scaffold(
-      appBar: AppTopBar(section: initial ? 'Benvenuto a bordo' : ['I tuoi preferiti', 'Bus · fermate e linee', 'Metro FCE'][index], onSettings: settings),
-      body: SafeArea(top: false, bottom: false, child: initial
-        ? InitialDownload(busy: widget.state.importing, progress: widget.state.progress, fraction: widget.state.downloadProgress, error: widget.state.automaticFailed ? widget.state.automaticMessage : null, onRetry: () => unawaited(widget.state.refreshScheduleIfNeeded(force: true)), onContinue: () => setState(() => continueWithoutData = true))
-        : Column(children: [
-          if (widget.state.automaticMessage != null) DataUpdateNotice(widget.state),
-          Expanded(child: switch (index) {
-            0 => StopList(widget.state, favorites: true, onSearch: () => setState(() => index = 1), onSettings: settings),
-            1 => ExploreScreen(widget.state, onSettings: settings),
-            _ => MetroScreen(widget.state),
-          }),
-        ])),
-      bottomNavigationBar: initial ? null : Container(
-        decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant))),
-        child: NavigationBar(selectedIndex: index, onDestinationSelected: (value) => setState(() => index = value), destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home_rounded), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.search_rounded), label: 'Bus'),
-          NavigationDestination(icon: Icon(Icons.subway_outlined), selectedIcon: Icon(Icons.subway_rounded), label: 'Metro'),
-        ]),
-      ),
-    );
-  });
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: widget.state,
+    builder: (context, _) {
+      final initial =
+          widget.autoRefresh &&
+          widget.state.feed == null &&
+          !continueWithoutData;
+      return Scaffold(
+        appBar: AppTopBar(
+          section: initial
+              ? 'Benvenuto a bordo'
+              : [
+                  'I tuoi preferiti',
+                  'Bus · fermate e linee',
+                  'Metro FCE',
+                ][index],
+          onSettings: settings,
+        ),
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: initial
+              ? InitialDownload(
+                  busy: widget.state.importing,
+                  progress: widget.state.progress,
+                  fraction: widget.state.downloadProgress,
+                  error: widget.state.automaticFailed
+                      ? widget.state.automaticMessage
+                      : null,
+                  onRetry: () => unawaited(
+                    widget.state.refreshScheduleIfNeeded(force: true),
+                  ),
+                  onContinue: () => setState(() => continueWithoutData = true),
+                )
+              : Column(
+                  children: [
+                    if (widget.state.automaticMessage != null)
+                      DataUpdateNotice(widget.state),
+                    Expanded(
+                      child: switch (index) {
+                        0 => StopList(
+                          widget.state,
+                          favorites: true,
+                          onSearch: () => setState(() => index = 1),
+                          onSettings: settings,
+                        ),
+                        1 => ExploreScreen(widget.state, onSettings: settings),
+                        _ => MetroScreen(widget.state),
+                      },
+                    ),
+                  ],
+                ),
+        ),
+        bottomNavigationBar: initial
+            ? null
+            : Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                    ),
+                  ),
+                ),
+                child: NavigationBar(
+                  selectedIndex: index,
+                  onDestinationSelected: (value) =>
+                      setState(() => index = value),
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home_rounded),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.search_rounded),
+                      label: 'Bus',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.subway_outlined),
+                      selectedIcon: Icon(Icons.subway_rounded),
+                      label: 'Metro',
+                    ),
+                  ],
+                ),
+              ),
+      );
+    },
+  );
 }
 
 class ExploreScreen extends StatefulWidget {
@@ -83,30 +171,95 @@ class ExploreScreen extends StatefulWidget {
 class _ExploreScreenState extends State<ExploreScreen> {
   bool lines = false;
   @override
-  Widget build(BuildContext context) => Column(children: [
-    Padding(padding: const EdgeInsets.fromLTRB(22, 12, 22, 4), child: SizedBox(width: double.infinity, child: SegmentedButton<bool>(
-      segments: const [ButtonSegment(value: false, label: Text('Per fermata'), icon: Icon(Icons.location_on_outlined)), ButtonSegment(value: true, label: Text('Per linea'), icon: Icon(Icons.alt_route_rounded))],
-      selected: {lines}, onSelectionChanged: (value) => setState(() => lines = value.single),
-    ))),
-    Expanded(child: lines ? RouteList(widget.state, compact: true, onSettings: widget.onSettings) : StopList(widget.state, favorites: false, compact: true, onSettings: widget.onSettings)),
-  ]);
+  Widget build(BuildContext context) => Column(
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(22, 12, 22, 4),
+        child: SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(
+                value: false,
+                label: Text('Per fermata'),
+                icon: Icon(Icons.location_on_outlined),
+              ),
+              ButtonSegment(
+                value: true,
+                label: Text('Per linea'),
+                icon: Icon(Icons.alt_route_rounded),
+              ),
+            ],
+            selected: {lines},
+            onSelectionChanged: (value) => setState(() => lines = value.single),
+          ),
+        ),
+      ),
+      Expanded(
+        child: lines
+            ? RouteList(
+                widget.state,
+                compact: true,
+                onSettings: widget.onSettings,
+              )
+            : StopList(
+                widget.state,
+                favorites: false,
+                compact: true,
+                onSettings: widget.onSettings,
+              ),
+      ),
+    ],
+  );
 }
 
 class DataUpdateNotice extends StatelessWidget {
   const DataUpdateNotice(this.state, {super.key});
   final AppState state;
   @override
-  Widget build(BuildContext context) => Semantics(liveRegion: true, child: Container(
-    key: const Key('data-update-notice'), width: double.infinity, padding: const EdgeInsets.fromLTRB(16, 10, 6, 10),
-    color: state.automaticFailed || state.feedExpired ? Theme.of(context).colorScheme.errorContainer : Theme.of(context).colorScheme.primary.withValues(alpha: .07),
-    child: Row(children: [
-      Icon(state.automaticUpdating ? Icons.sync_rounded : state.automaticFailed ? Icons.cloud_off_outlined : Icons.info_outline_rounded, size: 20),
-      const SizedBox(width: 10),
-      Expanded(child: Text(state.automaticMessage!, style: const TextStyle(fontSize: 12))),
-      if (state.automaticFailed && !state.importing) IconButton(tooltip: 'Riprova aggiornamento', onPressed: () => unawaited(state.refreshScheduleIfNeeded(force: true)), icon: const Icon(Icons.refresh_rounded)),
-      IconButton(tooltip: 'Chiudi avviso', onPressed: state.dismissAutomaticMessage, icon: const Icon(Icons.close_rounded), iconSize: 18),
-    ]),
-  ));
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    child: Container(
+      key: const Key('data-update-notice'),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 6, 10),
+      color: state.automaticFailed || state.feedExpired
+          ? Theme.of(context).colorScheme.errorContainer
+          : Theme.of(context).colorScheme.primary.withValues(alpha: .07),
+      child: Row(
+        children: [
+          Icon(
+            state.automaticUpdating
+                ? Icons.sync_rounded
+                : state.automaticFailed
+                ? Icons.cloud_off_outlined
+                : Icons.info_outline_rounded,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              state.automaticMessage!,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          if (state.automaticFailed && !state.importing)
+            IconButton(
+              tooltip: 'Riprova aggiornamento',
+              onPressed: () =>
+                  unawaited(state.refreshScheduleIfNeeded(force: true)),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          IconButton(
+            tooltip: 'Chiudi avviso',
+            onPressed: state.dismissAutomaticMessage,
+            icon: const Icon(Icons.close_rounded),
+            iconSize: 18,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class StopList extends StatefulWidget {
@@ -281,18 +434,18 @@ class _StopListState extends State<StopList> {
                   ),
                 ] else ...[
                   if (!widget.compact) ...[
-                  Text(
-                    'Trova la tua\nfermata.',
-                    style: Theme.of(context).textTheme.headlineLarge,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Cerca per nome o codice. Anche senza rete.',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    Text(
+                      'Trova la tua\nfermata.',
+                      style: Theme.of(context).textTheme.headlineLarge,
                     ),
-                  ),
-                  const SizedBox(height: 22),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Cerca per nome o codice. Anche senza rete.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 22),
                   ],
                   TextField(
                     controller: controller,
