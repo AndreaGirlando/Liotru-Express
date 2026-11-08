@@ -47,6 +47,10 @@ class RealtimeFeed {
     final result = <Arrival>[];
     for (final arrival in scheduled) {
       final matches = updates.where((u) {
+        final stamp=number(u['timestamp']);
+        if(stamp!=null && !_fresh(DateTime.fromMillisecondsSinceEpoch(stamp*1000,isUtc:true),now)) {
+          return false;
+        }
         final trip = object(u['trip']);
         if (trip == null || field(trip,'tripId','trip_id') != arrival.tripId) return false;
         final date = field(trip,'startDate','start_date');
@@ -84,6 +88,7 @@ class RealtimeFeed {
           if (seq != null && seq > arrival.sequence) continue;
           final relationship = field(stop,'scheduleRelationship','schedule_relationship');
           if (exact && relation(relationship,'SKIPPED',1)) { skipped = true; break; }
+          if(relation(relationship,'SKIPPED',1)) continue;
           if (relation(relationship,'NO_DATA',2)) {
             delay = null;
             if (exact) prediction = null;
@@ -91,8 +96,8 @@ class RealtimeFeed {
           }
           final event = object(stop['arrival']);
           final departure = object(stop['departure']);
-          final uncertainty = number(event?['uncertainty']);
-          if(exact && uncertainty != null && (uncertainty < 0 || uncertainty > 120)) {
+          final uncertainty = number(event?['uncertainty']) ?? number(departure?['uncertainty']);
+          if(uncertainty != null && (uncertainty < 0 || uncertainty > 120)) {
             delay = null; prediction = null; continue;
           }
           if (exact) {

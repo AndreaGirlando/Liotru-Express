@@ -23,18 +23,40 @@ Future<void> downloadFile(http.Client client, Uri url, File file,
     await response.stream.listen((_) {}).cancel();
     throw const FormatException('Risposta troppo grande');
   }
-  final sink = file.openWrite();
+  final output = await file.open(mode:FileMode.write);
+  final iterator = StreamIterator<List<int>>(response.stream);
+  final watch = Stopwatch()..start();
   var length = 0;
-  final subscription = response.stream.listen((chunk) {
-    length += chunk.length;
-    if (length <= maxBytes) sink.add(chunk);
-  });
   try {
-    await subscription.asFuture<void>().timeout(const Duration(seconds: 90));
-    if (length > maxBytes) throw const FormatException('Risposta troppo grande');
-    await sink.flush();
+    while(true) {
+      final remaining = const Duration(seconds:90)-watch.elapsed;
+      if(remaining<=Duration.zero) throw TimeoutException('Download GTFS scaduto');
+      if(!await iterator.moveNext().timeout(remaining)) break;
+      final chunk=iterator.current;
+      length+=chunk.length;
+      if(length>maxBytes) throw const FormatException('Risposta troppo grande');
+      await output.writeFrom(chunk);
+    }
+    await output.flush();
   } finally {
-    await subscription.cancel();
-    await sink.close();
+    await iterator.cancel();
+    await output.close();
   }
+}
+
+Future<List<int>> readJsonBody(Stream<List<int>> stream,
+    {int maxBytes=10*1024*1024,Duration timeout=const Duration(seconds:15)}) async {
+  final iterator=StreamIterator<List<int>>(stream);
+  final watch=Stopwatch()..start();
+  final bytes=<int>[];
+  try {
+    while(true) {
+      final remaining=timeout-watch.elapsed;
+      if(remaining<=Duration.zero) throw TimeoutException('Download realtime scaduto');
+      if(!await iterator.moveNext().timeout(remaining)) break;
+      if(bytes.length+iterator.current.length>maxBytes) throw const FormatException('Risposta troppo grande');
+      bytes.addAll(iterator.current);
+    }
+    return bytes;
+  } finally {await iterator.cancel();}
 }

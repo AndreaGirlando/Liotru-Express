@@ -62,6 +62,8 @@ void main() {
     final f=feed({'timestamp':now.subtract(const Duration(minutes:4)).millisecondsSinceEpoch~/1000,'delay':90});
     expect(f.apply([arrival()],now).single.isRealtime,isFalse);
     expect(feed({'delay':90}).apply([arrival()],now.add(const Duration(minutes:4))).single.isRealtime,isFalse);
+    final cached=feed({'timestamp':now.subtract(const Duration(seconds:170)).millisecondsSinceEpoch~/1000,'delay':90});
+    expect(cached.apply([arrival()],now.add(const Duration(seconds:20))).single.isRealtime,isFalse);
   });
   test('HTTP errors, malformed JSON and offline fall back to schedule',() async {
     for(final client in [MockClient((_) async => http.Response('no',503)),

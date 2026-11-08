@@ -32,6 +32,14 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: Formatta codice Dart
+        run: dart format lib test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codice-formattato
+          path: |
+            lib/
+            test/
       - uses: actions/upload-artifact@v4
         with:
           name: dipendenze-risolte

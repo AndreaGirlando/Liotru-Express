@@ -60,13 +60,7 @@ class RealtimeService {
         await response.stream.listen((_){}).cancel();
         throw const FormatException('Risposta troppo grande');
       }
-      var size = 0;
-      final bytes = <int>[];
-      await for (final chunk in response.stream.timeout(const Duration(seconds:12))) {
-        size += chunk.length;
-        if (size > 10*1024*1024) throw const FormatException('Risposta troppo grande');
-        bytes.addAll(chunk);
-      }
+      final bytes = await readJsonBody(response.stream);
       final feed = RealtimeFeed.parse(jsonDecode(utf8.decode(bytes)), now);
       _cache = feed;
       return RealtimeResult(feed, 'Dati realtime disponibili');
