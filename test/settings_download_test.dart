@@ -16,11 +16,16 @@ import 'fixtures.dart';
 
 void main() {
   for (final invalidRealtime in [false, true]) {
-    testWidgets('download button imports with mounted UI, invalid RT: $invalidRealtime', (tester) async {
-      await checkDownload(tester, invalidRealtime: invalidRealtime);
-    });
+    testWidgets(
+      'download button imports with mounted UI, invalid RT: $invalidRealtime',
+      (tester) async {
+        await checkDownload(tester, invalidRealtime: invalidRealtime);
+      },
+    );
   }
-  testWidgets('HTTP failure remains visible and keeps previous GTFS usable', (tester) async {
+  testWidgets('HTTP failure remains visible and keeps previous GTFS usable', (
+    tester,
+  ) async {
     await checkDownload(tester, failHttp: true);
   });
 }
@@ -42,14 +47,16 @@ Future<void> checkDownload(
     directory = await Directory.systemTemp.createTemp('settings_download_');
     final database = await TransitDatabase.open(
       '${directory.path}/settings.db',
-      factory: databaseFactoryFfi,
+      factory: databaseFactoryFfiNoIsolate,
     );
     final zip = await fixtureZip(directory);
     final bytes = await zip.readAsBytes();
     final client = MockClient((request) async {
       requests++;
       expect(request.url.toString(), UserPreferences.officialGtfsUrl);
-      return failHttp ? http.Response('', 503) : http.Response.bytes(bytes, 200);
+      return failHttp
+          ? http.Response('', 503)
+          : http.Response.bytes(bytes, 200);
     });
     state = AppState(
       database,
@@ -58,7 +65,9 @@ Future<void> checkDownload(
       cacheDirectory: () async => directory,
     );
     if (failHttp) {
-      await GtfsImporter(database).importZip(zip.path, source: 'PREVIOUS VALID GTFS');
+      await GtfsImporter(
+        database,
+      ).importZip(zip.path, source: 'PREVIOUS VALID GTFS');
       await state.load();
     }
   });
@@ -70,6 +79,7 @@ Future<void> checkDownload(
       completed.complete();
     }
   }
+
   state.addListener(watch);
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox.shrink());
@@ -86,10 +96,16 @@ Future<void> checkDownload(
   );
   final button = find.text('Scarica e aggiorna dati');
   await tester.ensureVisible(button);
-  await tester.runAsync(() async {
-    await tester.tap(button);
-    await completed.future.timeout(const Duration(seconds: 20));
-  });
+  await tester.tap(button);
+  final watchTime = Stopwatch()..start();
+  while (!completed.isCompleted &&
+      watchTime.elapsed < const Duration(seconds: 20)) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump(const Duration(milliseconds: 20));
+  }
+  expect(completed.isCompleted, isTrue);
   await tester.pumpAndSettle();
   expect(requests, 1);
   expect(state.importing, isFalse);
@@ -98,7 +114,10 @@ Future<void> checkDownload(
     expect(state.feed!.source, 'PREVIOUS VALID GTFS');
     await tester.pump(const Duration(seconds: 8));
     await tester.pumpAndSettle();
-    expect(tester.widget<SelectableText>(find.byType(SelectableText)).data, contains('HTTP 503'));
+    expect(
+      tester.widget<SelectableText>(find.byType(SelectableText)).data,
+      contains('HTTP 503'),
+    );
     final stops = await tester.runAsync(() => state.database.search('001'));
     expect(stops!.single.id, 'S1');
   } else {

@@ -46,7 +46,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Impossibile raggiungere il server. Controlla la connessione e riprova.',
         FileSystemException() =>
           'Impossibile leggere o salvare l’archivio. Controlla lo spazio libero sul telefono.',
-        _ => 'Aggiornamento non riuscito. Riprova o importa uno ZIP dal telefono.',
+        _ =>
+          'Aggiornamento non riuscito. Riprova o importa uno ZIP dal telefono.',
       };
       if (mounted) setState(() => error = detail);
       message(detail);

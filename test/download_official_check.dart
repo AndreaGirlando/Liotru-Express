@@ -13,38 +13,46 @@ import 'package:catania_bus/data/preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  test('official GTFS downloads and imports through AppState', () async {
-    tz.initializeTimeZones();
-    sqfliteFfiInit();
-    SharedPreferences.setMockInitialValues({});
-    final directory = await Directory.systemTemp.createTemp('official_http_');
-    final database = await TransitDatabase.open(
-      '${directory.path}/official.db',
-      factory: databaseFactoryFfi,
-    );
-    final state = AppState(
-      database,
-      UserPreferences(await SharedPreferences.getInstance()),
-      http.Client(),
-      cacheDirectory: () async => directory,
-    );
-    final port = ReceivePort();
-    state.addListener(() => port.sendPort.send(state.progress));
-    try {
-      await state.downloadGtfs(UserPreferences.officialGtfsUrl);
-      expect(state.importing, isFalse);
-      expect(state.feed!.stops, greaterThan(0));
-      expect(state.feed!.source, UserPreferences.officialGtfsUrl);
-      expect(await database.search(''), isNotEmpty);
-      // ignore: avoid_print
-      print('Pulsante GTFS verificato con HTTP Dart reale: '
-          '${state.feed!.stops} fermate importate e ricercabili offline.');
-    } finally {
-      port.close();
-      state.client.close();
-      state.dispose();
-      await database.db.close();
-      await directory.delete(recursive: true);
-    }
-  }, timeout: const Timeout(Duration(minutes: 8)));
+  // Live integration intentionally bypasses Flutter test's fake HTTP client.
+  HttpOverrides.global = null;
+  test(
+    'official GTFS downloads and imports through AppState',
+    () async {
+      tz.initializeTimeZones();
+      sqfliteFfiInit();
+      SharedPreferences.setMockInitialValues({});
+      final directory = await Directory.systemTemp.createTemp('official_http_');
+      final database = await TransitDatabase.open(
+        '${directory.path}/official.db',
+        factory: databaseFactoryFfi,
+      );
+      final state = AppState(
+        database,
+        UserPreferences(await SharedPreferences.getInstance()),
+        http.Client(),
+        cacheDirectory: () async => directory,
+      );
+      final port = ReceivePort();
+      state.addListener(() => port.sendPort.send(state.progress));
+      try {
+        await state.downloadGtfs(UserPreferences.officialGtfsUrl);
+        expect(state.importing, isFalse);
+        expect(state.feed!.stops, greaterThan(0));
+        expect(state.feed!.source, UserPreferences.officialGtfsUrl);
+        expect(await database.search(''), isNotEmpty);
+        // ignore: avoid_print
+        print(
+          'Pulsante GTFS verificato con HTTP Dart reale: '
+          '${state.feed!.stops} fermate importate e ricercabili offline.',
+        );
+      } finally {
+        port.close();
+        state.client.close();
+        state.dispose();
+        await database.db.close();
+        await directory.delete(recursive: true);
+      }
+    },
+    timeout: const Timeout(Duration(minutes: 8)),
+  );
 }
