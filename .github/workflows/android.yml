@@ -48,7 +48,7 @@ jobs:
         if: hashFiles('source-verification/official-gtfs.zip') != ''
         env:
           CATANIABUS_REAL_GTFS: source-verification/official-gtfs.zip
-        run: flutter test test/official_feed_check.dart --reporter expanded
+        run: flutter test test/official_feed_check.dart test/download_official_check.dart --reporter expanded
       - name: Prepara Gradle con retry e verifica SHA-256
         env:
           GH_TOKEN: ${{ github.token }}

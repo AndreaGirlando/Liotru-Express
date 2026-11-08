@@ -9,6 +9,11 @@ import 'package:sqflite/sqflite.dart';
 import '../domain/gtfs_time.dart';
 import 'database.dart';
 
+// Keep the worker closure outside importZip's shared scope. Only file paths
+// may cross the isolate boundary, never progress callbacks or the widget tree.
+Future<String> _extractArchive(String path, String root) =>
+    Isolate.run(() => GtfsImporter.extract(path, root));
+
 class GtfsImporter {
   GtfsImporter(this.store);
   final TransitDatabase store;
@@ -154,7 +159,7 @@ class GtfsImporter {
     }
     progress?.call('Estrazione e controllo archivio…');
     final root = temporaryRoot ?? Directory.systemTemp.path;
-    final directory = await Isolate.run(() => extract(path, root));
+    final directory = await _extractArchive(path, root);
     try {
       var agencyCount = 0;
       await for (final row in rows(

@@ -11,12 +11,18 @@ import 'data/realtime_service.dart';
 import 'domain/models.dart';
 
 class AppState extends ChangeNotifier {
-  AppState(this.database, this.preferences, this.client)
-    : realtime = RealtimeService(client);
+  AppState(
+    this.database,
+    this.preferences,
+    this.client, {
+    Future<Directory> Function()? cacheDirectory,
+  }) : cacheDirectory = cacheDirectory ?? getTemporaryDirectory,
+       realtime = RealtimeService(client);
   final TransitDatabase database;
   final UserPreferences preferences;
   final http.Client client;
   final RealtimeService realtime;
+  final Future<Directory> Function() cacheDirectory;
   FeedInfo? feed;
   bool importing = false;
   String progress = '';
@@ -50,6 +56,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> downloadGtfs(String url) async {
+    httpsUrl(url);
+    await preferences.setStaticUrl(url.trim());
+    await import();
+  }
+
   Future<void> import({String? localPath}) async {
     if (importing) return;
     importing = true;
@@ -57,7 +69,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     Directory? temp;
     try {
-      final cache = await getTemporaryDirectory();
+      final cache = await cacheDirectory();
       var path = localPath;
       final source = path == null
           ? preferences.staticUrl
@@ -81,9 +93,14 @@ class AppState extends ChangeNotifier {
       );
       feed = await database.info();
     } finally {
-      if (temp != null) await temp.delete(recursive: true);
-      importing = false;
-      notifyListeners();
+      try {
+        if (temp != null && await temp.exists()) {
+          await temp.delete(recursive: true);
+        }
+      } finally {
+        importing = false;
+        notifyListeners();
+      }
     }
   }
 }

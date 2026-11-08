@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../app_state.dart';
@@ -18,6 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     text: widget.state.preferences.realtimeUrl,
   );
   late bool enabled = widget.state.preferences.realtimeEnabled;
+  String? error;
   void message(String text) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -29,14 +32,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> run(Future<void> Function() action) async {
+    setState(() => error = null);
     try {
       await action();
     } catch (e) {
-      message(
-        e is FormatException
-            ? e.message.toString()
-            : 'Operazione non riuscita. Controlla il file o la connessione. I dati precedenti sono conservati.',
-      );
+      final detail = switch (e) {
+        FormatException() => e.message.toString(),
+        HttpException() => e.message,
+        TimeoutException() => 'Il server non ha risposto in tempo. Riprova.',
+        HandshakeException() =>
+          'Connessione sicura al server non riuscita. Puoi scaricare lo ZIP dal browser e importarlo dal telefono.',
+        SocketException() =>
+          'Impossibile raggiungere il server. Controlla la connessione e riprova.',
+        FileSystemException() =>
+          'Impossibile leggere o salvare l’archivio. Controlla lo spazio libero sul telefono.',
+        _ =>
+          'Aggiornamento non riuscito. Riprova o importa uno ZIP dal telefono.',
+      };
+      if (mounted) setState(() => error = detail);
+      message(detail);
     }
   }
 
@@ -133,18 +147,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onPressed: busy
                 ? null
                 : () => run(() async {
-                    await save();
-                    await widget.state.import();
+                    await widget.state.downloadGtfs(staticUrl.text);
                     message('Dati GTFS aggiornati.');
                   }),
             icon: const Icon(Icons.download),
-            label: const Text('Scarica e aggiorna dati'),
+            label: Text(
+              busy ? 'Aggiornamento in corso…' : 'Scarica e aggiorna dati',
+            ),
           ),
           if (busy) ...[
             const SizedBox(height: 12),
             const LinearProgressIndicator(),
             const SizedBox(height: 8),
             Text(widget.state.progress),
+          ],
+          if (error != null) ...[
+            const SizedBox(height: 12),
+            Semantics(
+              liveRegion: true,
+              child: Card(
+                color: Theme.of(context).colorScheme.errorContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SelectableText(
+                    '$error\nGli eventuali dati già importati restano disponibili.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
           const SizedBox(height: 24),
           Text(

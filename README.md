@@ -24,8 +24,8 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
-   Finché la pull request non è unita a `main`, seleziona il branch
-   `codex/cataniabus-android` (`git switch codex/cataniabus-android`).
+   Per la correzione 1.0.1, finché la relativa pull request non è unita a `main`,
+   seleziona `codex/fix-gtfs-download` (`git switch codex/fix-gtfs-download`).
 4. Esegui:
 
 ```sh
@@ -75,6 +75,10 @@ adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
 
 ## Importare e aggiornare gli orari AMTS
+
+La versione 1.0.1 corregge il blocco dell’importazione dal pulsante di download.
+Gli errori restano visibili nella pagina e il download GTFS non dipende dalla
+validità delle impostazioni del tempo reale.
 
 1. In CataniaBus apri **Impostazioni → Scarica e aggiorna dati**: il link ufficiale è già inserito.
 2. Se il download fallisce, apri [Open Data AMTS](https://www.amts.ct.it/open-data)
