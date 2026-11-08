@@ -64,7 +64,9 @@ void main() {
               expect(shuttle.nearby, isNot(contains(first)));
             }
             // ignore: avoid_print
-            print('Metro Shuttle a Stazione Milo: $label; live: ${first.isRealtime}.');
+            print(
+              'Metro Shuttle a Stazione Milo: $label; live: ${first.isRealtime}.',
+            );
           }
           shuttle.dispose();
         }
