@@ -9,7 +9,7 @@ Interfaccia in italiano, nessun account e nessuna pubblicità.
 
 **[Scarica l’APK](https://github.com/AndreaGirlando/CataniaAMTS/releases)** · [Segnala un problema](https://github.com/AndreaGirlando/CataniaAMTS/issues)
 
-Android **7.0+** · File `.apk` pronto da installare, senza ZIP.
+Android **7.0+** · File `.apk` pronto da installare.
 
 ## Cosa trovi nell’app
 
@@ -25,7 +25,7 @@ Progetto personale, sperimentale e **full vibecodato** con l’IA. Non è affili
 
 **La Metro mostra stime da orario, non arrivi live.** Verifica sempre gli avvisi degli operatori.
 
-App e codice sono forniti senza garanzie; nei limiti di legge l’autore non risponde di errori, ritardi o danni. [Disclaimer completo e attribuzioni](docs/NOTE_LEGALI.md).
+App e codice sono forniti senza garanzie; nei limiti di legge l’autore non risponde di errori, ritardi o danni.
 
 ---
 
