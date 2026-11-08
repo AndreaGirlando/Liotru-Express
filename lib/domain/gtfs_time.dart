@@ -27,9 +27,13 @@ String serviceDate(DateTime d) => '${d.year.toString().padLeft(4, '0')}'
     '${d.month.toString().padLeft(2, '0')}${d.day.toString().padLeft(2, '0')}';
 
 // GTFS: seconds from "noon minus 12h", including on DST transition days.
-DateTime serviceInstant(DateTime date, int seconds) =>
-    tz.TZDateTime(rome, date.year, date.month, date.day, 12)
-        .subtract(const Duration(hours: 12)).add(Duration(seconds: seconds));
+DateTime serviceInstant(DateTime date, int seconds) {
+  final local = tz.TZDateTime(rome, date.year, date.month, date.day, 12)
+      .subtract(const Duration(hours: 12)).add(Duration(seconds: seconds));
+  // Keep model instants as ordinary UTC DateTime values. TZDateTime equality
+  // also compares the location, which differs from DateTime's equality rules.
+  return DateTime.fromMillisecondsSinceEpoch(local.millisecondsSinceEpoch,isUtc:true);
+}
 
 String clockTime(DateTime d) {
   final local = tz.TZDateTime.from(d, rome);

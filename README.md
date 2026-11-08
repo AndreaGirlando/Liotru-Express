@@ -6,10 +6,13 @@ o servizio a pagamento. Tutta l’interfaccia è in italiano, con tema chiaro/sc
 
 ## Stato dei dati
 
-Le fonti AMTS e BusOne sono bloccate dal proxy dell’ambiente di sviluppo.
-**Non sono disponibili dati AMTS precaricati o un endpoint realtime verificato.**
-L’app si avvia senza dati e permette l’importazione di uno ZIP GTFS reale.
-Consulta [la verifica delle fonti](docs/FONTI_DATI.md) e l’artefatto
+Le fonti sono state verificate dalla rete GitHub Actions l’8 novembre 2026:
+[GTFS ufficiale AMTS](https://www.amts.ct.it/GTFS/AMTCT.zip) e
+[TripUpdates BusOne](https://proxy.busone.app/amts/gtfs-rt/trip-updates.json)
+rispondono HTTP 200. Gli URL sono già compilati nelle impostazioni.
+L’app si avvia senza dati: apri **Impostazioni → Scarica e aggiorna dati**.
+Poi, se vuoi, attiva il tempo reale e salva le preferenze.
+Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’artefatto
 `verifica-fonti` prodotto dal workflow nella scheda Actions della repository.
 
 ## Aprire e compilare il progetto
@@ -71,13 +74,14 @@ adb install -r build/app/outputs/flutter-apk/app-release.apk
 
 ## Importare e aggiornare gli orari AMTS
 
-1. Apri [Open Data AMTS](https://www.amts.ct.it/open-data) nel browser.
-2. Scarica l’archivio **GTFS ZIP**, senza estrarlo, sul telefono.
-3. In CataniaBus apri **Impostazioni → Importa ZIP dal telefono** e scegli il file.
+1. In CataniaBus apri **Impostazioni → Scarica e aggiorna dati**: il link ufficiale è già inserito.
+2. Se il download fallisce, apri [Open Data AMTS](https://www.amts.ct.it/open-data)
+   nel browser e scarica l’archivio **GTFS ZIP**, senza estrarlo, sul telefono.
+3. Usa **Impostazioni → Importa ZIP dal telefono** per importarlo manualmente.
 4. Apri **Fermate**, cerca nome/codice e tocca una fermata per vedere gli arrivi.
 5. Usa la stella per aggiungerla ai **Preferiti**.
 
-Se trovi un link diretto HTTPS funzionante allo ZIP, puoi salvarlo nelle
+Se AMTS cambia il link diretto HTTPS allo ZIP, puoi aggiornarlo nelle
 impostazioni e usare **Scarica e aggiorna dati**. Non usare l’URL della pagina
 HTML come se fosse l’archivio. L’importazione è manuale: nessun download in
 background. Un aggiornamento non valido lascia intatti gli ultimi dati.
@@ -97,24 +101,29 @@ successive 24 ore; non vengono interpolate fermate senza orario pubblicato.
 
 ## Attivare il tempo reale
 
-Consulta prima [BusOne](https://proxy.busone.app/amts/): accesso, condizioni
-d’uso, eventuali chiavi e frequenza ammessa devono essere verificati.
-Il possibile endpoint indicato nel requisito non è assunto come valido.
-Inserisci un URL HTTPS che restituisca GTFS-Realtime **TripUpdates JSON completo**,
-attiva il servizio e salva. Servizi che richiedono chiavi API non sono supportati
-da questa versione. Non inserire credenziali nell’URL.
+L’endpoint [BusOne](https://proxy.busone.app/amts/) verificato è già inserito:
+attiva **Tempo reale** e salva. Le condizioni lette consentono l’uso personale
+gratuito con attribuzione; non serve una chiave API. L’app invia gli header
+richiesti `X-BusOne-Use: personal` e `X-BusOne-Client` con nome dell’app e
+profilo GitHub pubblico del proprietario come contatto. Per un fork cambia
+`UserPreferences.clientIdentity`. Le attribuzioni AMTS e BusOne sono nelle
+impostazioni e nel dettaglio arrivi.
+
+Puoi configurare un altro endpoint HTTPS GTFS-Realtime **TripUpdates JSON completo**.
+Servizi che richiedono chiavi API non sono supportati. Non inserire credenziali nell’URL.
 
 L’app usa `trip_id`, data/ora iniziale, `stop_sequence` e `stop_id` per collegare
 le previsioni. Usa timestamp o ritardi dichiarati, cancella le corse annullate,
 nasconde fermate saltate e interrompe la propagazione a `NO_DATA`.
 Senza data del servizio non applica aggiornamenti ambigui tra giorni diversi.
 Non ricava previsioni dal GPS. Un timestamp più vecchio di 3 minuti o oltre
-30 secondi nel futuro viene scartato. Gli errori mostrano gli orari programmati.
+30 secondi nel futuro viene scartato. Anche il timestamp individuale della corsa
+viene controllato. Un’incertezza esplicita maggiore di 120 secondi fa tornare
+all’orario programmato. Gli errori mostrano gli orari programmati.
 
 **Tempo reale** è verde; **Programmato** è grigio. Il polling si ferma uscendo
 dalla schermata o mettendo l’app in pausa. Anche il pulsante Aggiorna rispetta
-il limite di una richiesta al minuto. Se il fornitore richiede intervalli più
-lunghi, lascia il servizio spento. L’app non garantisce ritardi oltre tre ore
+il limite di una richiesta al minuto e gli header HTTP Retry-After. L’app non garantisce ritardi oltre tre ore
 rispetto all’orario programmato.
 
 ## Codice, test e tracciabilità
@@ -133,3 +142,6 @@ rispetto all’orario programmato.
 I test sotto `test/` usano esclusivamente dati **sintetici**, mai presentati
 all’utente come dati AMTS. Coprono ZIP, rollback, ricerca, festività, date di
 servizio, cambio ora, oltre mezzanotte, TripUpdates, errori rete e preferiti.
+La verifica separata `test/official_feed_check.dart`, invocata esplicitamente
+in CI, importa invece lo ZIP ufficiale appena scaricato e verifica un arrivo
+pubblicato. Questo file non è incluso nella raccolta automatica dei test sintetici.

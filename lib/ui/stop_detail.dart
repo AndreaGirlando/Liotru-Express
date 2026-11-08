@@ -38,27 +38,29 @@ class _StopDetailState extends State<StopDetail> with WidgetsBindingObserver {
   Future<void> refresh() async {
     if(refreshing) return;
     refreshing=true;
+    final requested=selected;
     if(mounted) setState(()=>loading=arrivals.isEmpty);
     try {
       final now=DateTime.now();
-      final from=selected ?? now;
+      final from=requested ?? now;
       // Include recently departed scheduled trips so a delayed bus is retained.
       final scheduled=await widget.state.database.arrivals(widget.stop.id,
-        from.subtract(selected==null ? const Duration(hours:3) : Duration.zero),
-        horizon:selected==null ? const Duration(hours:27) : const Duration(hours:24));
+        from.subtract(requested==null ? const Duration(hours:3) : Duration.zero),
+        horizon:requested==null ? const Duration(hours:27) : const Duration(hours:24));
       List<Arrival> result=scheduled;
       String message='Orari programmati';
       DateTime? stamp;
-      if(selected==null && widget.state.preferences.realtimeEnabled) {
+      if(requested==null && widget.state.preferences.realtimeEnabled && active) {
         final response=await widget.state.realtime.fetch(widget.state.preferences.realtimeUrl,now);
         message=response.message;
         if(response.feed!=null) {result=response.feed!.apply(scheduled,DateTime.now());stamp=response.feed!.timestamp;}
       }
       result=result.where((a)=>!a.time.isBefore(from) && a.time.isBefore(from.add(const Duration(hours:24)))).toList();
-      if(mounted) setState(() {arrivals=result;status=message;updated=DateTime.now();feedStamp=stamp;error=null;loading=false;});
+      if(mounted && requested==selected) setState(() {arrivals=result;status=message;updated=DateTime.now();feedStamp=stamp;error=null;loading=false;});
     } catch(_) {
       if(mounted) setState(() {error='Impossibile leggere gli orari. Riprova.';arrivals=[];loading=false;});
     } finally {refreshing=false;}
+    if(mounted && requested!=selected) refresh();
   }
   Future<void> selectDate() async {
     final now=tz.TZDateTime.from(DateTime.now(),rome);
@@ -119,18 +121,18 @@ class ArrivalTile extends StatelessWidget {
         : Theme.of(context).colorScheme.onSurfaceVariant;
     return Card(margin:const EdgeInsets.symmetric(horizontal:16,vertical:6),child:Padding(
       padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-        Row(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Wrap(spacing:12,runSpacing:8,crossAxisAlignment:WrapCrossAlignment.center,children:[
           Container(padding:const EdgeInsets.symmetric(horizontal:12,vertical:8),
             decoration:BoxDecoration(color:Theme.of(context).colorScheme.primaryContainer,borderRadius:BorderRadius.circular(12)),
             child:Text(arrival.route,style:Theme.of(context).textTheme.titleLarge)),
-          const SizedBox(width:12),Expanded(child:Text(arrival.destination,style:Theme.of(context).textTheme.titleMedium)),
+          Text(arrival.destination,style:Theme.of(context).textTheme.titleMedium),
         ]),
         const SizedBox(height:12),
         Wrap(spacing:16,runSpacing:8,crossAxisAlignment:WrapCrossAlignment.center,children:[
           Text(clockTime(arrival.time),style:Theme.of(context).textTheme.headlineSmall),
           Text(minutes<=0 ? 'In arrivo' : 'tra $minutes min',style:Theme.of(context).textTheme.titleMedium),
-          Row(mainAxisSize:MainAxisSize.min,children:[Icon(Icons.circle,size:9,color:color),const SizedBox(width:6),
-            Text(arrival.isRealtime ? 'Tempo reale' : 'Programmato',style:TextStyle(color:color))]),
+          Text.rich(TextSpan(children:[WidgetSpan(child:Icon(Icons.circle,size:9,color:color)),
+            TextSpan(text:arrival.isRealtime ? ' Tempo reale' : ' Programmato')]),style:TextStyle(color:color)),
         ]),
         if(arrival.isRealtime) Text('Programmato: ${clockTime(arrival.scheduled)}',style:Theme.of(context).textTheme.bodySmall),
       ]),

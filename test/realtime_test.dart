@@ -29,6 +29,11 @@ void main() {
   test('trip-level delay is applied',() {
     expect(feed({'delay':120}).apply([arrival()],now).single.predicted,now.add(const Duration(minutes:12)));
   });
+  test('high uncertainty cannot be shown as current realtime',() {
+    final result=feed({'delay':90,'stopTimeUpdate':[{'stopSequence':2,
+      'arrival':{'delay':60,'uncertainty':300}}]}).apply([arrival()],now);
+    expect(result.single.isRealtime,isFalse);
+  });
   test('canceled trip and skipped stop disappear',() {
     expect(feed({'trip':{'tripId':'T1','scheduleRelationship':'CANCELED'}}).apply([arrival()],now),isEmpty);
     expect(feed({'stopTimeUpdate':[{'stopSequence':2,'scheduleRelationship':1}]}).apply([arrival()],now),isEmpty);
@@ -88,6 +93,22 @@ void main() {
     await service.fetch('https://example.invalid/feed',now);
     final result=await service.fetch('https://example.invalid/feed',now.add(const Duration(minutes:1)));
     expect(result.feed!.apply([arrival()],now.add(const Duration(minutes:1))).single.isRealtime,isFalse);
+    client.close();
+  });
+  test('BusOne identification and Retry-After are honored',() async {
+    var calls=0;
+    final client=MockClient((request) async {
+      calls++;
+      expect(request.headers['X-BusOne-Use'],'personal');
+      expect(request.headers['X-BusOne-Client'],contains('CataniaBus'));
+      return http.Response('rate limit',429,headers:{'retry-after':'300'});
+    });
+    final service=RealtimeService(client);
+    await service.fetch('https://example.invalid/feed',now);
+    await service.fetch('https://example.invalid/feed',now.add(const Duration(minutes:2)));
+    expect(calls,1);
+    await service.fetch('https://example.invalid/feed',now.add(const Duration(minutes:5)));
+    expect(calls,2);
     client.close();
   });
 }
