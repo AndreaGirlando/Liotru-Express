@@ -49,6 +49,39 @@ void main() {
         );
         expect(arrivals, isNotEmpty);
         expect(arrivals.any((a) => a.scheduled == when), isTrue);
+        final routes = await db.searchRoutes('');
+        expect(routes, isNotEmpty);
+        for (final query in ['Metro Shuttle', '156', 'BRT1']) {
+          final route = (await db.searchRoutes(query)).first;
+          final patterns = await db.routePatterns(route.id);
+          expect(patterns, isNotEmpty);
+          expect(
+            patterns.map((p) => p.directionId).toSet(),
+            containsAll(['0', '1']),
+          );
+          final publishedStops = await db.db.rawQuery(
+            'SELECT DISTINCT st.stop_id FROM stop_times st JOIN trips t ON t.trip_id=st.trip_id WHERE t.route_id=?',
+            [route.id],
+          );
+          expect(
+            patterns.expand((p) => p.stops).map((s) => s.id).toSet(),
+            publishedStops.map((r) => r['stop_id']).toSet(),
+          );
+          for (final pattern in patterns) {
+            final original = await db.db.rawQuery(
+              'SELECT stop_id FROM stop_times WHERE trip_id=? ORDER BY stop_sequence',
+              [pattern.tripId],
+            );
+            expect(
+              pattern.stops.map((s) => s.id),
+              original.map((r) => r['stop_id']),
+            );
+          }
+          // ignore: avoid_print
+          print(
+            'Autobus ${route.label}: ${patterns.map((p) => '${p.directionLabel} ${p.stops.length} fermate').join('; ')}; ordine e completezza verificati.',
+          );
+        }
         // ignore: avoid_print
         print(
           'AMTS verificato: ${info.stops} fermate, calendario fino a ${info.endDate}; '

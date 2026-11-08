@@ -54,7 +54,7 @@ garantisce disponibilità o completezza.
 
 I client automatici devono inviare `X-BusOne-Client` (applicazione e contatto)
 e `X-BusOne-Use`. CataniaBus invia `personal` e
-`CataniaBus/2.0; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
+`CataniaBus/2.1; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
 del proprietario della repository; nessun indirizzo email o segreto è incluso.
 Per riusare il progetto con un altro account cambiare `clientIdentity`.
 

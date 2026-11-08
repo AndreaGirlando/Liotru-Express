@@ -19,8 +19,8 @@ report = {'checked_at': datetime.now(timezone.utc).isoformat(), 'sources': []}
 
 def fetch(url, limit=20_000_000):
     request = urllib.request.Request(url, headers={
-        'User-Agent': 'CataniaBus-personal-source-check/2.0',
-        'X-BusOne-Client': 'CataniaBus/2.0; https://github.com/AndreaGirlando',
+        'User-Agent': 'CataniaBus-personal-source-check/2.1',
+        'X-BusOne-Client': 'CataniaBus/2.1; https://github.com/AndreaGirlando',
         'X-BusOne-Use': 'personal',
     })
     try:

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:catania_bus/ui/design.dart';
 import 'package:catania_bus/ui/home.dart';
 import 'package:catania_bus/ui/stop_detail.dart';
+import 'package:catania_bus/ui/routes.dart';
 import 'live_snapshot_fixture.dart';
 
 void main() {
@@ -64,4 +65,47 @@ void main() {
       await tester.pumpWidget(const SizedBox.shrink());
     });
   }
+  testWidgets('Metro Shuttle outbound and return real stop previews', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(430, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final routes = await tester.runAsync(
+      () => fixture.state.database.searchRoutes('Metro Shuttle'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: BusDesign.theme(Brightness.light),
+        home: RepaintBoundary(
+          key: const Key('bus-preview'),
+          child: RouteDetail(fixture.state, routes!.first),
+        ),
+      ),
+    );
+    for (var i = 0; i < 200; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 15)),
+      );
+      await tester.pump(const Duration(milliseconds: 20));
+      if (find.byType(CircularProgressIndicator).evaluate().isEmpty) break;
+    }
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.widgetWithText(ChoiceChip, 'Andata'), findsOneWidget);
+    expect(find.widgetWithText(ChoiceChip, 'Ritorno'), findsOneWidget);
+    await expectLater(
+      find.byKey(const Key('bus-preview')),
+      matchesGoldenFile('previews/bus-andata.png'),
+    );
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Ritorno'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await expectLater(
+      find.byKey(const Key('bus-preview')),
+      matchesGoldenFile('previews/bus-ritorno.png'),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

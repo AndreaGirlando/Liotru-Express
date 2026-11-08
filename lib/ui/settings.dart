@@ -82,7 +82,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const Align(
             alignment: Alignment.centerLeft,
-            child: SmallPill('CATANIABUS 2.0', icon: Icons.tune_rounded),
+            child: SmallPill('CATANIABUS 2.1', icon: Icons.tune_rounded),
           ),
           const SizedBox(height: 20),
           Text(
