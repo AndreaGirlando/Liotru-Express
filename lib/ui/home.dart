@@ -11,6 +11,7 @@ import 'metro.dart';
 import 'stop_detail.dart';
 import 'app_chrome.dart';
 import 'initial_download.dart';
+import 'home_metro.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen(this.state, {this.autoRefresh = true, super.key});
@@ -114,6 +115,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           widget.state,
                           favorites: true,
                           onSearch: () => setState(() => index = 1),
+                          onMetro: () async {
+                            await widget.state.preferences.setMetroStation(
+                              widget.state.preferences.metroFavoriteStation,
+                            );
+                            if (mounted) setState(() => index = 2);
+                          },
                           onSettings: settings,
                         ),
                         1 => ExploreScreen(widget.state, onSettings: settings),
@@ -267,6 +274,7 @@ class StopList extends StatefulWidget {
     this.state, {
     required this.favorites,
     this.onSearch,
+    this.onMetro,
     this.onSettings,
     this.compact = false,
     super.key,
@@ -274,7 +282,7 @@ class StopList extends StatefulWidget {
   final AppState state;
   final bool favorites;
   final bool compact;
-  final VoidCallback? onSearch, onSettings;
+  final VoidCallback? onSearch, onMetro, onSettings;
   @override
   State<StopList> createState() => _StopListState();
 }
@@ -358,80 +366,7 @@ class _StopListState extends State<StopList> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (widget.favorites) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xff1b4052), BusDesign.ink],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(29),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SmallPill(
-                          'LA TUA CITTÀ, OGNI GIORNO',
-                          color: BusDesign.lime,
-                          background: Color(0xff2c4b54),
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          'Il tuo prossimo\nbus a Catania.',
-                          style: Theme.of(context).textTheme.headlineLarge
-                              ?.copyWith(color: Colors.white),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Le fermate che usi. Gli arrivi che ti servono.',
-                          style: TextStyle(
-                            color: Color(0xffb6cbd0),
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        Material(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(17),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(17),
-                            onTap: widget.onSearch,
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 17,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.search_rounded,
-                                    color: BusDesign.ink,
-                                  ),
-                                  SizedBox(width: 11),
-                                  Expanded(
-                                    child: Text(
-                                      'Cerca una fermata',
-                                      style: TextStyle(
-                                        color: BusDesign.ink,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_forward_rounded,
-                                    size: 20,
-                                    color: BusDesign.ink,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  HomeMetroCard(widget.state, onOpen: widget.onMetro),
                 ] else ...[
                   if (!widget.compact) ...[
                     Text(

@@ -53,8 +53,8 @@ dati realtime delle fonti originali. Il servizio non è ufficiale AMTS e non
 garantisce disponibilità o completezza.
 
 I client automatici devono inviare `X-BusOne-Client` (applicazione e contatto)
-e `X-BusOne-Use`. CataniaBus invia `personal` e
-`CataniaBus/2.3; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
+e `X-BusOne-Use`. Liotru Express invia `personal` e
+`LiotruExpress/2.4; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
 del proprietario della repository; nessun indirizzo email o segreto è incluso.
 Per riusare il progetto con un altro account cambiare `clientIdentity`.
 

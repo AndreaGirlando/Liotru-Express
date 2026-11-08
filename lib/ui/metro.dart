@@ -103,7 +103,10 @@ class _MetroScreenState extends State<MetroScreen> with WidgetsBindingObserver {
             style: TextStyle(color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 22),
-          DropdownButtonFormField<String>(
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
             initialValue: selected.id,
             isExpanded: true,
             decoration: const InputDecoration(
@@ -130,12 +133,33 @@ class _MetroScreenState extends State<MetroScreen> with WidgetsBindingObserver {
               }
             },
           ),
-          const SizedBox(height: 16),
-          const SmallPill(
-            'Stime da orario',
-            icon: Icons.info_outline_rounded,
-            color: Color(0xff875708),
-            background: Color(0xffffeac4),
+              ),
+              const SizedBox(width: 8),
+              ListenableBuilder(
+                listenable: widget.state,
+                builder: (context, _) {
+                  final favorite =
+                      widget.state.preferences.metroFavoriteStation == selected.id;
+                  return IconButton(
+                    tooltip: favorite
+                        ? 'Stazione preferita della Home'
+                        : 'Usa questa stazione nella Home',
+                    onPressed: favorite ? null : () async {
+                      try {
+                        await widget.state.favoriteMetro(selected.id);
+                      } catch (_) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Non riesco a salvare la stazione preferita.')),
+                          );
+                        }
+                      }
+                    },
+                    icon: Icon(favorite ? Icons.star_rounded : Icons.star_border_rounded),
+                  );
+                },
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           for (final direction in MetroDirection.values) ...[

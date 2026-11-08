@@ -50,7 +50,28 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - id: format
+        run: dart format --output=none --set-exit-if-changed lib test
+      - name: Prepara formattazione per diagnosi
+        if: failure() && steps.format.outcome == 'failure'
+        run: dart format lib test
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.format.outcome == 'failure'
+        with:
+          name: codice-formattato
+          path: |
+            lib/**/*.dart
+            test/**/*.dart
+      - uses: actions/upload-artifact@v4
+        if: failure() && steps.format.outcome == 'failure'
+        with:
+          name: dart-formatter-runtime
+          path: |
+            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/dart
+            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/dartaotruntime
+            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/snapshots/dartdev_aot.dart.snapshot
+            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/bin/snapshots/dartdev.dart.snapshot
+            ${{ env.FLUTTER_ROOT }}/bin/cache/dart-sdk/version
       - uses: actions/upload-artifact@v4
         with:
           name: dipendenze-risolte
@@ -92,7 +113,7 @@ jobs:
           key: cataniabus-android-debug-signing-v1
       - run: flutter build apk --release
       - name: Pubblica APK diretto nelle Release
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        if: hashFiles('assets/branding/liotru.png') != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

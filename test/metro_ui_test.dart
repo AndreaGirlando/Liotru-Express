@@ -74,7 +74,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Verso Stesicoro'), findsOneWidget);
       expect(find.text('Verso Monte Po'), findsOneWidget);
-      expect(find.text('Stime da orario'), findsOneWidget);
+      expect(find.text('Stime da orario'), findsNothing);
       expect(find.textContaining('febbraio 2025'), findsNothing);
       expect(find.text('Come funzionano le stime Metro'), findsNothing);
       expect(requests, 0);
@@ -84,6 +84,10 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Sei al capolinea'), findsOneWidget);
       expect(state.preferences.metroStation, '1657');
+      expect(state.preferences.metroFavoriteStation, '1663');
+      await tester.tap(find.byTooltip('Usa questa stazione nella Home'));
+      await tester.pumpAndSettle();
+      expect(state.preferences.metroFavoriteStation, '1657');
       await tester.tap(find.byTooltip('Impostazioni'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(

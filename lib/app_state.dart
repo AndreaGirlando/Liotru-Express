@@ -111,12 +111,18 @@ class AppState extends ChangeNotifier {
     _ => ThemeMode.system,
   };
   Future<void> load() async {
+    await preferences.migrateMetroFavorite();
     feed = await database.info();
     notifyListeners();
   }
 
   Future<void> toggle(String id) async {
     await preferences.toggleFavorite(id);
+    notifyListeners();
+  }
+
+  Future<void> favoriteMetro(String id) async {
+    await preferences.setMetroFavoriteStation(id);
     notifyListeners();
   }
 

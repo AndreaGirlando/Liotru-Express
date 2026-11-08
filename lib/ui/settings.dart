@@ -375,7 +375,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Il servizio BusOne è gratuito per uso personale. Le richieste includono CataniaBus e il profilo GitHub AndreaGirlando come contatto pubblico.',
+                        'Il servizio BusOne è gratuito per uso personale. Le richieste includono Liotru Express e il profilo GitHub AndreaGirlando come contatto pubblico.',
                         style: TextStyle(fontSize: 12, height: 1.5),
                       ),
                     ],
@@ -403,7 +403,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Padding(
                   padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
                   child: Text(
-                    'Orari e fermate: AMTS – Azienda Metropolitana Trasporti e Sosta Catania S.p.A., licenza IODL 2.0.\nwww.amts.ct.it/open-data\n\nPrevisioni: BusOne (https://busone.app) e fonte originale AMTS.\nCondizioni: https://proxy.busone.app/amts/\n\nCataniaBus è un’app personale indipendente. Nessun account, pubblicità o rilevamento della posizione.',
+                    'Orari e fermate: AMTS – Azienda Metropolitana Trasporti e Sosta Catania S.p.A., licenza IODL 2.0.\nwww.amts.ct.it/open-data\n\nPrevisioni: BusOne (https://busone.app) e fonte originale AMTS.\nCondizioni: https://proxy.busone.app/amts/\n\nLiotru Express è un’app personale indipendente. Nessun account, pubblicità o rilevamento della posizione.',
                   ),
                 ),
               ],

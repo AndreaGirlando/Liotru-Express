@@ -41,7 +41,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'cataniabus',
+                'Liotru Express',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(

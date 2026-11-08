@@ -1,8 +1,49 @@
-# CataniaBus 🚌
+# Liotru Express 🐘
 
 App Android personale in Flutter, indipendente da AMTS: fermate, preferiti,
 orari GTFS offline e TripUpdates JSON opzionali. Nessun account, server, Firebase
 o servizio a pagamento. Tutta l’interfaccia è in italiano, con tema chiaro/scuro.
+
+## Avvertenza e responsabilità
+
+**Liotru Express è un progetto personale, sperimentale e non ufficiale,
+interamente sviluppato con l’assistenza di strumenti di intelligenza artificiale
+(«full vibecoded» / «full vibecodata»).** Il codice può contenere errori,
+comportamenti imprevisti e vulnerabilità, anche in presenza di test automatici.
+Non è un’app di AMTS, FCE o BusOne e non è approvata o garantita da tali soggetti.
+
+L’app e il codice sono forniti **così come sono**, senza garanzie di correttezza,
+completezza, disponibilità o idoneità a uno scopo particolare. Orari, attese e
+previsioni sono indicativi: possono essere errati, scaduti o non disponibili.
+La Metro mostra stime da orario, non la posizione dei treni né arrivi live.
+Verifica sempre gli avvisi e gli orari degli operatori ufficiali prima di viaggiare.
+
+**Nei limiti consentiti dalla legge, l’autore e gli eventuali contributori non
+si assumono responsabilità per l’uso o l’impossibilità di usare l’app**, inclusi
+errori negli orari, corse perse, ritardi, costi, perdita di dati o altri danni.
+L’utente sceglie autonomamente come utilizzare le informazioni. Restano ferme
+le responsabilità che la legge non consente di escludere: questo disclaimer
+non costituisce un’esenzione assoluta da responsabilità
+([art. 1229 del Codice civile](https://def.giustiziatributaria.gov.it/DocTribFrontend/executePrintArticolo.do?articolo=Articolo+1229&codiceOrdinamento=0000000000012290000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000&id=%7B9E93F1BE-06AE-4F24-8E9D-B838F7E0C2E6%7D)).
+
+## Pubblicazione e diritti di terzi
+
+La pubblicazione della repository rende visibili anche la cronologia Git,
+le Release e la cronologia/log delle Actions: prima di cambiare visibilità
+verificare che non contengano credenziali o materiale privato
+([documentazione GitHub](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility)).
+Le chiavi di firma, i database locali, i download e le configurazioni locali
+sono esclusi dal versionamento.
+
+La visibilità pubblica non sostituisce una licenza del codice e non concede
+diritti aggiuntivi su dati, marchi o immagini di terzi. I dati AMTS sono
+attribuiti ad AMTS con licenza IODL 2.0; l’uso di BusOne resta soggetto alle sue
+condizioni, incluso l’uso personale e non commerciale. Per FCE restano valide
+le condizioni delle fonti originali, collegate nelle impostazioni. I font
+Manrope sono distribuiti con il testo della licenza OFL in `assets/fonts/OFL.txt`.
+Prima della pubblicazione verificare anche origine e licenza del PNG
+fornito per l’icona: l’averlo allegato al progetto non prova il diritto di ridistribuirlo.
+Consultare [fonti e attribuzioni](docs/FONTI_DATI.md).
 
 ## Stato dei dati
 
@@ -27,7 +68,7 @@ Consulta [la verifica delle fonti e le condizioni](docs/FONTI_DATI.md) e l’art
    NDK 27.0.12077973 se richiesto da Flutter.
 3. Clona questa repository, apri la cartella in Android Studio o VS Code e avvia
    un terminale nella cartella che contiene `pubspec.yaml`.
-   Per la versione 2.3, finché la relativa pull request non è unita a `main`,
+   Per la versione 2.4, finché la relativa pull request non è unita a `main`,
    seleziona `codex/automatic-data-navigation` (`git switch codex/automatic-data-navigation`).
 4. Esegui:
 
@@ -53,7 +94,7 @@ Il wrapper Gradle è incluso; Flutter genera `android/local.properties` localmen
 
 ## Ottenere l’APK diretto da GitHub
 
-Apri **Releases** e scarica **CataniaBus-2.3.0.apk**: è già il file installabile,
+Apri **Releases** e scarica **LiotruExpress-2.4.0.apk**: è già il file installabile,
 non uno ZIP. La CI pubblica una release stabile `vX.Y.Z` dai push su `main`
 o dalle esecuzioni manuali; le PR interne producono anteprime identificate dal
 numero di esecuzione, collegate al commit compilato. Gli APK vengono pubblicati
@@ -74,14 +115,24 @@ pubblicate non vengono sovrascritte da altri commit con la stessa versione.
 
 Trasferisci l’APK sul telefono via USB o tramite un tuo spazio file, aprilo
 dall’app File e autorizza temporaneamente **Installa app sconosciute** per
-quell’app quando Android lo richiede. Conferma l’installazione di CataniaBus.
+quell’app quando Android lo richiede. Conferma l’installazione di Liotru Express.
 In alternativa, con Android Platform Tools e debug USB:
 
 ```sh
 adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
 
-## Avvio e aggiornamento automatico (2.3)
+## Home e stazione Metro preferita (2.4)
+
+La Home mostra i prossimi passaggi Metro verso **Stesicoro** e **Monte Po**
+della **Stazione preferita**. Puoi cambiarla dal selettore nella Home oppure
+selezionare una stazione nella scheda Metro e toccare la stella. La preferita
+è salvata sul dispositivo e non cambia quando consulti altre stazioni Metro.
+I contatori si aggiornano durante l’uso e alla ripresa dell’app; al capolinea
+la direzione che termina lì è indicata senza inventare una corsa. Il dettaglio
+delle stime e delle fonti resta nelle impostazioni.
+
+## Avvio e aggiornamento automatico
 
 Al primo avvio l’app scarica automaticamente i dati AMTS, con un’animazione
 e l’avanzamento del download. È possibile continuare a usare l’app durante
@@ -112,7 +163,7 @@ La versione 1.0.1 corregge il blocco dell’importazione dal pulsante di downloa
 Gli errori restano visibili nella pagina e il download GTFS non dipende dalla
 validità delle impostazioni del tempo reale.
 
-1. In CataniaBus apri **Impostazioni → Scarica e aggiorna dati**: il link ufficiale è già inserito.
+1. In Liotru Express apri **Impostazioni → Scarica e aggiorna dati**: il link ufficiale è già inserito.
 2. Se il download fallisce, apri [Open Data AMTS](https://www.amts.ct.it/open-data)
    nel browser e scarica l’archivio **GTFS ZIP**, senza estrarlo, sul telefono.
 3. Usa **Impostazioni → Importa ZIP dal telefono** per importarlo manualmente.
@@ -183,8 +234,8 @@ si aggiungono i tempi relativi del GTFS FCE pubblicato: il suo calendario è fer
 al **28 febbraio 2025**, nonostante il titolo della pagina indichi il 2028.
 Il vecchio GTFS viene usato solo per le durate fra stazioni: i suoi calendari
 non vengono estesi né usati per attivare corse attuali.
-Questi tempi storici possono essere imprecisi: la limitazione è sempre visibile
-con l’etichetta **Stime da orario**; i dettagli sono in **Impostazioni → Come funzionano le stime Metro**.
+Questi tempi storici possono essere imprecisi: i passaggi restano indicati come
+stimati nelle schede; i dettagli sono in **Impostazioni → Come funzionano le stime Metro**.
 Non vengono rilevati ritardi, soppressioni o modifiche straordinarie. Il conto
 alla rovescia non rappresenta la posizione di un treno. Eventi e festività locali
 richiedono la consultazione degli avvisi FCE.
