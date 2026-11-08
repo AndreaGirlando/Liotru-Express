@@ -6,6 +6,18 @@ import '../app_state.dart';
 import '../data/preferences.dart';
 import 'design.dart';
 import 'home.dart';
+import 'app_chrome.dart';
+import 'metro_info.dart';
+
+class SettingsPage extends StatelessWidget {
+  const SettingsPage(this.state, {super.key});
+  final AppState state;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: const AppTopBar(section: 'Impostazioni', showBack: true),
+    body: SafeArea(top: false, child: SettingsScreen(state)),
+  );
+}
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen(this.state, {super.key});
@@ -80,21 +92,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       return ListView(
         padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
         children: [
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: SmallPill('CATANIABUS 2.2', icon: Icons.tune_rounded),
-          ),
-          const SizedBox(height: 20),
           Text(
-            'Tutto sotto\ncontrollo.',
-            style: Theme.of(context).textTheme.headlineLarge,
+            'Dati e preferenze',
+            style: Theme.of(context).textTheme.headlineMedium,
           ),
           const SizedBox(height: 10),
           Text(
-            'Orari, previsioni e un’app come piace a te.',
+            'Orari aggiornati, previsioni e un’app come piace a te.',
             style: TextStyle(color: colors.onSurfaceVariant),
           ),
-          const SizedBox(height: 26),
+          const SizedBox(height: 24),
           SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Fermate e orari AMTS restano sul telefono. Aggiorna i dati quando viene pubblicato un nuovo calendario.',
+                  'Fermate e orari AMTS si scaricano al primo avvio e si aggiornano automaticamente alla scadenza, senza interrompere l’uso dell’app.',
                   style: TextStyle(
                     color: colors.onSurfaceVariant,
                     height: 1.55,
@@ -235,7 +242,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: const Icon(Icons.folder_open_rounded),
                   label: const Text('Importa ZIP dal telefono'),
                 ),
-                if (busy) ...[
+                if (busy &&
+                    !(widget.state.automaticUpdating && info != null)) ...[
                   const SizedBox(height: 16),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
@@ -295,6 +303,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 18),
+          const MetroInfoPanel(),
           const SizedBox(height: 18),
           SurfaceCard(
             padding: EdgeInsets.zero,
@@ -365,7 +375,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Il servizio BusOne è gratuito per uso personale. Le richieste includono CataniaBus e il profilo GitHub AndreaGirlando come contatto pubblico.',
+                        'Il servizio BusOne è gratuito per uso personale. Le richieste includono Liotru Express e il profilo GitHub AndreaGirlando come contatto pubblico.',
                         style: TextStyle(fontSize: 12, height: 1.5),
                       ),
                     ],
@@ -393,7 +403,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Padding(
                   padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
                   child: Text(
-                    'Orari e fermate: AMTS – Azienda Metropolitana Trasporti e Sosta Catania S.p.A., licenza IODL 2.0.\nwww.amts.ct.it/open-data\n\nPrevisioni: BusOne (https://busone.app) e fonte originale AMTS.\nCondizioni: https://proxy.busone.app/amts/\n\nCataniaBus è un’app personale indipendente. Nessun account, pubblicità o rilevamento della posizione.',
+                    'Orari e fermate: AMTS – Azienda Metropolitana Trasporti e Sosta Catania S.p.A., licenza IODL 2.0.\nwww.amts.ct.it/open-data\n\nPrevisioni: BusOne (https://busone.app) e fonte originale AMTS.\nCondizioni: https://proxy.busone.app/amts/\n\nLiotru Express è un’app personale indipendente. Nessun account, pubblicità o rilevamento della posizione.',
                   ),
                 ),
               ],

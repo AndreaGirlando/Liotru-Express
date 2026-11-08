@@ -13,6 +13,8 @@ jobs:
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Verifica fonti pubbliche
@@ -83,8 +85,31 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 tool/prepare_kotlin.py
+      - name: Conserva la firma personale per le build successive
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/liotru-signing/debug.keystore
+          key: liotru-personal-debug-signing-v2
+      - name: Prepara la chiave personale nel percorso conservato
+        env:
+          LIOTRU_DEBUG_KEYSTORE: ${{ runner.temp }}/liotru-signing/debug.keystore
+        run: |
+          mkdir -p "$(dirname "$LIOTRU_DEBUG_KEYSTORE")"
+          if [ ! -f "$LIOTRU_DEBUG_KEYSTORE" ]; then
+            keytool -genkeypair -keystore "$LIOTRU_DEBUG_KEYSTORE" -storepass android -keypass android -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt
+          fi
       - run: flutter build apk --release
+        env:
+          LIOTRU_DEBUG_KEYSTORE: ${{ runner.temp }}/liotru-signing/debug.keystore
+      - name: Pubblica APK diretto nelle Release
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: bash tool/publish_apk.sh
       - uses: actions/upload-artifact@v4
+        if: ${{ always() && hashFiles('build/app/outputs/flutter-apk/app-release.apk') != '' }}
         with:
           name: CataniaBus-APK
           path: build/app/outputs/flutter-apk/app-release.apk

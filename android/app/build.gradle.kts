@@ -30,6 +30,17 @@ android {
         versionName = flutter.versionName
     }
 
+    // CI chooses a known path so the same personal debug key can be cached.
+    // Local Flutter builds retain Android's normal debug signing configuration.
+    System.getenv("LIOTRU_DEBUG_KEYSTORE")?.let { keyStorePath ->
+        signingConfigs.getByName("debug") {
+            storeFile = file(keyStorePath)
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             // APK personale: firma debug, documentata nel README.

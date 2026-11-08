@@ -180,3 +180,6 @@ String metroCountdown(DateTime arrival, DateTime now) {
   if (seconds >= 90 * 60) return clockTime(arrival);
   return '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 }
+
+String metroDate(DateTime date) =>
+    '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

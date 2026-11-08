@@ -1,11 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="CataniaBus"
+        android:label="Liotru Express"
         android:usesCleartextTraffic="false"
         android:allowBackup="false"
         android:name="${applicationName}"
-        android:icon="@drawable/ic_cataniabus">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

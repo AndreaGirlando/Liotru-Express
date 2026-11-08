@@ -7,6 +7,7 @@ import '../domain/gtfs_time.dart';
 import '../domain/models.dart';
 import 'arrivals_controller.dart';
 import 'design.dart';
+import 'app_chrome.dart';
 
 class StopDetail extends StatefulWidget {
   const StopDetail(this.state, this.stop, {this.clock, super.key});
@@ -91,11 +92,9 @@ class _StopDetailState extends State<StopDetail> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text(
-        'Arrivi alla fermata',
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-      ),
+    appBar: AppTopBar(
+      section: 'Arrivi alla fermata',
+      showBack: true,
       actions: [
         ListenableBuilder(
           listenable: widget.state,
