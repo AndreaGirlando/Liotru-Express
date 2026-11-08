@@ -23,6 +23,10 @@ class UserPreferences {
     await prefs.setString('theme', value);
   }
 
+  Future<void> setStaticUrl(String value) async {
+    await prefs.setString('static_url', value);
+  }
+
   Future<void> setSources(String staticUrl, String rtUrl, bool enabled) async {
     await prefs.setString('static_url', staticUrl);
     await prefs.setString('realtime_url', rtUrl);

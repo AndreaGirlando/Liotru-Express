@@ -56,6 +56,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> downloadGtfs(String url) async {
+    httpsUrl(url);
+    await preferences.setStaticUrl(url.trim());
+    await import();
+  }
+
   Future<void> import({String? localPath}) async {
     if (importing) return;
     importing = true;
@@ -87,9 +93,14 @@ class AppState extends ChangeNotifier {
       );
       feed = await database.info();
     } finally {
-      if (temp != null) await temp.delete(recursive: true);
-      importing = false;
-      notifyListeners();
+      try {
+        if (temp != null && await temp.exists()) {
+          await temp.delete(recursive: true);
+        }
+      } finally {
+        importing = false;
+        notifyListeners();
+      }
     }
   }
 }
