@@ -9,7 +9,7 @@ Verifica: 8 novembre 2026, 10:50 CET, tramite GitHub Actions.
 | https://proxy.busone.app/amts/ | HTTP 200, documentazione e condizioni lette dall’HTML scaricato. |
 | https://proxy.busone.app/amts/gtfs-rt/trip-updates.json | HTTP 200, JSON GTFS-Realtime 2.0, FULL_DATASET, snake_case, 95 entità nel campione. Nessuna chiave API. |
 
-Evidenza riproducibile: [esecuzione iniziale con rapporto e risposte](https://github.com/AndreaGirlando/CataniaAMTS/actions/runs/42468872060).
+Evidenza riproducibile: [esecuzione iniziale con rapporto e risposte](https://github.com/AndreaGirlando/Liotru-Express/actions/runs/42468872060).
 L’ambiente Codex locale blocca questi domini con 403 CONNECT del proxy; la
 verifica è stata effettuata dalla rete del runner, senza aggirare il proxy locale.
 Gli URL verificati sono precompilati nelle impostazioni. Non vengono incorporati
