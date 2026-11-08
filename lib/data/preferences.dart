@@ -9,12 +9,39 @@ class UserPreferences {
   static const busoneUrl =
       'https://proxy.busone.app/amts/gtfs-rt/trip-updates.json';
   static const clientIdentity =
-      'CataniaBus/2.2; https://github.com/AndreaGirlando';
+      'LiotruExpress/2.4; https://github.com/AndreaGirlando';
   String get staticUrl => prefs.getString('static_url') ?? officialGtfsUrl;
   String get realtimeUrl => prefs.getString('realtime_url') ?? busoneUrl;
   String get metroStation => prefs.getString('metro_station') ?? '1663';
+  String get metroFavoriteStation =>
+      prefs.getString('metro_favorite_station') ?? '1663';
+
+  Future<void> migrateMetroFavorite() async {
+    if (!prefs.containsKey('metro_favorite_station')) {
+      await setMetroFavoriteStation(metroStation);
+    }
+  }
+
+  DateTime? get nextAutomaticUpdate {
+    final stamp = prefs.getInt('next_automatic_update');
+    return stamp == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(stamp, isUtc: true);
+  }
+
+  Future<void> setNextAutomaticUpdate(DateTime value) async {
+    await prefs.setInt(
+      'next_automatic_update',
+      value.toUtc().millisecondsSinceEpoch,
+    );
+  }
+
   Future<void> setMetroStation(String id) async {
     await prefs.setString('metro_station', id);
+  }
+
+  Future<void> setMetroFavoriteStation(String id) async {
+    await prefs.setString('metro_favorite_station', id);
   }
 
   bool get realtimeEnabled => prefs.getBool('realtime_enabled') ?? true;

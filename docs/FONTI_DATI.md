@@ -13,7 +13,7 @@ Evidenza riproducibile: [esecuzione iniziale con rapporto e risposte](https://gi
 L’ambiente Codex locale blocca questi domini con 403 CONNECT del proxy; la
 verifica è stata effettuata dalla rete del runner, senza aggirare il proxy locale.
 Gli URL verificati sono precompilati nelle impostazioni. Non vengono incorporati
-dati di prova o previsioni simulate. Lo ZIP viene scaricato su richiesta dell’utente;
+dati di prova o previsioni simulate. Lo ZIP viene scaricato al primo avvio e alla scadenza del calendario;
 è sempre disponibile l’importazione manuale come fallback.
 
 Il campione ufficiale scaricato contiene 1.418 fermate, 53 linee, 15.769 corse
@@ -53,8 +53,8 @@ dati realtime delle fonti originali. Il servizio non è ufficiale AMTS e non
 garantisce disponibilità o completezza.
 
 I client automatici devono inviare `X-BusOne-Client` (applicazione e contatto)
-e `X-BusOne-Use`. CataniaBus invia `personal` e
-`CataniaBus/2.2; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
+e `X-BusOne-Use`. Liotru Express invia `personal` e
+`LiotruExpress/2.4; https://github.com/AndreaGirlando`, il contatto GitHub pubblico
 del proprietario della repository; nessun indirizzo email o segreto è incluso.
 Per riusare il progetto con un altro account cambiare `clientIdentity`.
 

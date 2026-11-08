@@ -329,7 +329,7 @@ void main() {
     final client = MockClient((request) async {
       calls++;
       expect(request.headers['X-BusOne-Use'], 'personal');
-      expect(request.headers['X-BusOne-Client'], contains('CataniaBus'));
+      expect(request.headers['X-BusOne-Client'], contains('LiotruExpress'));
       return http.Response('rate limit', 429, headers: {'retry-after': '300'});
     });
     final service = RealtimeService(client);
