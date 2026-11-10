@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   inspect:
     runs-on: ubuntu-latest
@@ -90,10 +91,52 @@ jobs:
                   if stops:item['first_stop_updates']=stops[:2]
                   f['samples'].append(item)
 
+
+          report['moovle_live']=[]
+          for route in ['1:A-MS','1:156','1:BRT1','1:ALIBUS']:
+              base='https://www.moovle.me/api/otp/'
+              endpoint='https://moovle.azure-api.net/catania'
+              url=base+'routes/'+urllib.parse.quote(route,safe=':')+'/patterns?'+urllib.parse.urlencode({'otpEndPoint':endpoint})
+              meta,body=get(url)
+              try:
+                  patterns=json.loads(body)
+                  meta['schema']=str(type(patterns))
+                  meta['sample']=patterns[:1] if isinstance(patterns,list) else patterns
+                  report['moovle_live'].append(meta)
+                  for pattern in (patterns[:2] if isinstance(patterns,list) else []):
+                      pid=pattern.get('Id',pattern.get('id',''))
+                      stops=pattern.get('Stops',pattern.get('stops',[]))
+                      if not stops:continue
+                      selected=next((s for s in stops if 'milo' in s.get('Name',s.get('name','')).lower()),stops[len(stops)//2])
+                      sid=selected.get('Id',selected.get('id',''))
+                      url=base+'stoptimes?'+urllib.parse.urlencode({'otpEndPoint':endpoint,'stopId':sid,'patternId':pid})
+                      m,b=get(url)
+                      m['route']=route;m['stop']=selected
+                      try:m['response']=json.loads(b)
+                      except: m['response_excerpt']=b[:150]
+                      report['moovle_live'].append(m)
+              except Exception as e:
+                  meta['parse_error']=str(e);meta['excerpt']=body[:150];report['moovle_live'].append(meta)
+          import subprocess,zipfile,io,csv
+          try:
+              subprocess.run(['gh','run','download','42523720428','--repo','AndreaGirlando/Liotru-Express','--name','verifica-fonti','--dir','/tmp/previous-amts'],check=True,capture_output=True,text=True,timeout=60)
+              files=list(Path('/tmp/previous-amts').rglob('official-gtfs.zip'))
+              meta,body=get('https://proxy.busone.app/amts/gtfs-rt/trip-updates.json',10000000)
+              feed=json.loads(body)
+              ids={e.get('trip_update',e.get('tripUpdate',{})).get('trip',{}).get('trip_id') for e in feed.get('entity',[])}
+              ids.discard(None)
+              with zipfile.ZipFile(files[0]) as z:
+                  name=next(n for n in z.namelist() if n.endswith('trips.txt'))
+                  old={r['trip_id'] for r in csv.DictReader(io.StringIO(z.read(name).decode('utf-8-sig')))}
+              report['static_alignment']={'previous_snapshot_run':42523720428,'current_feed_trip_count':len(ids),'matched_previous_static':len(ids & old),'unmatched_previous_static':len(ids-old),'unmatched_examples':list(sorted(ids-old))[:8]}
+          except Exception as e:report['static_alignment']={'error':str(e)}
+
           Path('source-research/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
-          print(json.dumps({k:report[k] for k in ['checked_utc','moovle_contract','moovle_bootstrap','feeds']},ensure_ascii=False,indent=2))
+          print(json.dumps({k:report[k] for k in ['checked_utc','moovle_live','static_alignment','feeds']},ensure_ascii=False,indent=2))
           PY
           python3 /tmp/research.py
+        env:
+          GH_TOKEN: ${{ github.token }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
