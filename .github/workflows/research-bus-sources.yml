@@ -1,0 +1,83 @@
+name: Verifica fonti Bus AMTS
+on:
+  push:
+    branches: [codex/investigate-bus-data]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Esamina pagine pubbliche e feed
+        run: |
+          mkdir -p source-research
+          cat > /tmp/research.py <<'PY'
+          import urllib.request, urllib.parse, re, json, hashlib, datetime
+          from pathlib import Path
+          report = {'checked_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'pages':[],'feeds':[]}
+          headers={'User-Agent':'LiotruExpress-source-research/1.0; https://github.com/AndreaGirlando/Liotru-Express','X-BusOne-Client':'LiotruExpress/source-research; https://github.com/AndreaGirlando','X-BusOne-Use':'personal'}
+          def get(url, limit=3000000):
+              try:
+                  with urllib.request.urlopen(urllib.request.Request(url,headers=headers),timeout=25) as r:
+                      data=r.read(limit+1)
+                      if len(data)>limit: return {'url':url,'error':'size limit'},''
+                      return {'url':url,'final_url':r.url,'status':r.status,'sha256':hashlib.sha256(data).hexdigest()},data.decode('utf-8',errors='replace')
+              except Exception as e: return {'url':url,'error':str(e)},''
+          pages=['https://www.moovle.me/regions/catania/','https://www.mycicero.it/amt-ct/TPWebPortal/it/']
+          scripts=[]
+          for url in pages:
+              meta,body=get(url)
+              links=[urllib.parse.urljoin(url,s) for s in re.findall(r'href=["\']([^"\']+)',body)]
+              meta['line_links']=[x for x in links if any(s in x.lower() for s in ['route','line','stop','transit','156','a-ms'])][:25]
+              src=[urllib.parse.urljoin(url,s) for s in re.findall(r'<script[^>]+src=["\']([^"\']+)',body)]
+              meta['scripts']=src
+              report['pages'].append(meta)
+              scripts += [x for x in src if urllib.parse.urlsplit(x).hostname in ['www.moovle.me','moovle.me','www.mycicero.it'] and not any(w in x for w in ['jquery','bootstrap','google','analytics','leaflet'])][:8]
+              for m in re.finditer(r'(?:https?://[^\s"\'<>]+|/wp-json/[^\s"\'<>]+)',body):
+                  u=m.group(0)
+                  if any(s in u.lower() for s in ['api','service','transit','realtime','rest','ajax']):
+                      meta.setdefault('public_endpoints',[]).append(u[:250])
+          report['scripts']=[]
+          for url in list(dict.fromkeys(scripts))[:12]:
+              meta,body=get(url)
+              urls=re.findall(r"https?://[a-zA-Z0-9./_?=&%:-]+",body) + re.findall(r'["\'](/[^"\'<>\s]+)["\']',body)
+              # Retain endpoint paths, never headers or credentials.
+              meta['paths']=list(dict.fromkeys(u for u in urls if u and any(k in u.lower() for k in ['api','service','transit','stop','vehicle','realtime','ajax','gtfs'])))[:60]
+              needles=['fetch(','axios','ajax','getTransits','GetTransits','getDepartures','getVehicles','getStops','apiUrl','api_url','serviceUrl','wpApiSettings']
+              contexts=[]
+              for needle in needles:
+                  start=0
+                  for _ in range(4):
+                      pos=body.find(needle,start)
+                      if pos<0:break
+                      text=body[max(0,pos-60):pos+200]
+                      text=re.sub(r'(?i)(authorization|api.?key|access.?token|password)(.{0,8})["\'][^"\']+["\']',r'\1: [redacted]',text)
+                      contexts.append(text)
+                      start=pos+len(needle)
+              meta['request_contexts']=contexts
+              report['scripts'].append(meta)
+          for name in ['vehicle-positions','trip-updates']:
+              meta,body=get('https://proxy.busone.app/amts/gtfs-rt/'+name+'.json',10000000)
+              if body:
+                  try:
+                      obj=json.loads(body);entities=obj.get('entity',[])
+                      meta['header']=obj.get('header');meta['entity_count']=len(entities)
+                      sample=[]
+                      for entity in entities[:8]:
+                          value=entity.get('vehicle') or entity.get('trip_update') or entity.get('tripUpdate') or {}
+                          sample.append(value)
+                      meta['samples']=sample
+                  except Exception as e:meta['parse_error']=str(e)
+              report['feeds'].append(meta)
+          Path('source-research/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
+          print(json.dumps({k:report[k] for k in ['checked_utc','pages','scripts']},ensure_ascii=False,indent=2))
+          PY
+          python3 /tmp/research.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ricerca-fonti-bus
+          path: source-research/report.json
+          retention-days: 7
