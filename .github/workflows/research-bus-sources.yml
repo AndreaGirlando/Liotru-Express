@@ -150,8 +150,38 @@ jobs:
               except:meta['excerpt']=body[:100]
               report.setdefault('additional_public_checks',[]).append(meta)
 
+
+          report['stop_comparison']=[]
+          endpoint='https://moovle.azure-api.net/catania'
+          for stop in ['1006','1836']:
+              for pattern in [None,'']:
+                  params={'otpEndPoint':endpoint,'stopId':'1:'+stop}
+                  if pattern is not None:params['patternId']=pattern
+                  url='https://www.moovle.me/api/otp/stoptimes?'+urllib.parse.urlencode(params)
+                  meta,body=get(url)
+                  try:
+                      data=json.loads(body)
+                      if isinstance(data,list):
+                          meta['count']=len(data);meta['realtime_count']=sum(bool(s.get('realtime')) for s in data)
+                          meta['realtime_rows']=[s for s in data if s.get('realtime')][:10]
+                      else:meta['response']=data
+                  except:meta['excerpt']=body[:100]
+                  report['stop_comparison'].append(meta)
+          meta,body=get('https://proxy.busone.app/amts/gtfs-rt/trip-updates.json',10000000)
+          updates=json.loads(body)
+          now=int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+          report['oracle_comparison']={'sampled_at':now,'predictions':[]}
+          for entity in updates.get('entity',[]):
+              item=entity.get('trip_update',{})
+              if item.get('trip',{}).get('route_id')!='BRT1':continue
+              for stop in item.get('stop_time_update',[]):
+                  if str(stop.get('stop_id')) not in ['1006','1836']:continue
+                  arrival=stop.get('arrival',{});eta=arrival.get('time')
+                  if eta is not None and now-120<=int(eta)<=now+1800:
+                      report['oracle_comparison']['predictions'].append({'trip':item.get('trip'),'vehicle':item.get('vehicle'),'timestamp':item.get('timestamp'),'stop':stop})
+
           Path('source-research/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
-          print(json.dumps({k:report[k] for k in ['checked_utc','mycicero_contract','additional_public_checks']},ensure_ascii=False,indent=2))
+          print(json.dumps({k:report[k] for k in ['checked_utc','stop_comparison','oracle_comparison']},ensure_ascii=False,indent=2))
           PY
           python3 /tmp/research.py
         env:
