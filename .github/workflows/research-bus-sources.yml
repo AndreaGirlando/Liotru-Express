@@ -131,8 +131,27 @@ jobs:
               report['static_alignment']={'previous_snapshot_run':42523720428,'current_feed_trip_count':len(ids),'matched_previous_static':len(ids & old),'unmatched_previous_static':len(ids-old),'unmatched_examples':list(sorted(ids-old))[:8]}
           except Exception as e:report['static_alignment']={'error':str(e)}
 
+
+          report['mycicero_contract']=[]
+          meta,body=get('https://www.mycicero.it/amt-ct/TPWebPortal/it/main.b495a39ddecaf210.js',10000000)
+          meta['public_urls']=list(dict.fromkeys(re.findall(r"https?://[a-zA-Z0-9./_?=&%:-]+",body)))[:70]
+          report['mycicero_contract'].append(meta)
+          for needle in ['GetReal','getReal','getPalin','GetPalin','Prevision','prevision','RealTime','realtime','webservices','Service.asmx','config.json','environment','getStopTimes','GetTransits','GetWait','GetMonitor','GetNext']:
+              matches=[]
+              for match in list(re.finditer(re.escape(needle),body))[:5]:
+                  snippet=body[max(0,match.start()-100):match.start()+180]
+                  if not re.search(r'(?i)password|api.?key|access.?token|authorization',snippet):matches.append(snippet)
+              if matches:report['mycicero_contract'].append({'needle':needle,'contexts':matches})
+          for url in ['https://proxy.busone.app/amts/status.json','https://moovle.azure-api.net/catania/index/stops/1:1928/stoptimes']:
+              meta,body=get(url,2000000)
+              try:
+                  data=json.loads(body)
+                  meta['response']=data
+              except:meta['excerpt']=body[:100]
+              report.setdefault('additional_public_checks',[]).append(meta)
+
           Path('source-research/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
-          print(json.dumps({k:report[k] for k in ['checked_utc','moovle_live','static_alignment','feeds']},ensure_ascii=False,indent=2))
+          print(json.dumps({k:report[k] for k in ['checked_utc','mycicero_contract','additional_public_checks']},ensure_ascii=False,indent=2))
           PY
           python3 /tmp/research.py
         env:
