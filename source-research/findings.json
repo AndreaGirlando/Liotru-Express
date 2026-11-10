@@ -1,0 +1,201 @@
+{
+  "checked_utc": "2026-11-10T11:20:17.427096+00:00",
+  "status": "research_verified_not_integrated",
+  "moovle": {
+    "publisher": "Edisonweb / Moovle, collegata dal sito AMTS",
+    "endpoint": "https://www.moovle.me/api/otp/stoptimes",
+    "query": {
+      "otpEndPoint": "https://moovle.azure-api.net/catania",
+      "stopId": "1:<id_fermata_AMTS>"
+    },
+    "http_status": 200,
+    "authentication_used": false,
+    "all_lines_without_patternId": true,
+    "fields": [
+      "routeShortName",
+      "patternName",
+      "departure",
+      "realtime",
+      "isNextDay",
+      "approaching"
+    ],
+    "limitations": [
+      "Endpoint del sito pubblico, non contratto API documentato o autorizzazione di redistribuzione.",
+      "tripId, departureTime e timestamp dell’osservazione non valorizzati nel campione: serve un adattatore dedicato, senza inventare corrispondenze alle corse GTFS.",
+      "La precisione su strada non è stata misurata."
+    ],
+    "samples": [
+      {
+        "route": "1:A-MS",
+        "stop_id": "1:1928",
+        "stop_name": "Stazione Milo",
+        "realtime_count": 0
+      },
+      {
+        "route": "1:A-MS",
+        "stop_id": "1:1928",
+        "stop_name": "Stazione Milo",
+        "realtime_count": 0
+      },
+      {
+        "route": "1:156",
+        "stop_id": "1:1948",
+        "stop_name": "Stazione Metro Milo",
+        "realtime_count": 0
+      },
+      {
+        "route": "1:156",
+        "stop_id": "1:1948",
+        "stop_name": "Stazione Metro Milo",
+        "realtime_count": 0
+      },
+      {
+        "route": "1:BRT1",
+        "stop_id": "1:1836",
+        "stop_name": "CITTADELLA EST",
+        "realtime_count": 1
+      },
+      {
+        "route": "1:BRT1",
+        "stop_id": "1:1006",
+        "stop_name": "MILO",
+        "realtime_count": 3
+      }
+    ],
+    "same_stop_probe": [
+      {
+        "url": "https://www.moovle.me/api/otp/stoptimes?otpEndPoint=https%3A%2F%2Fmoovle.azure-api.net%2Fcatania&stopId=1%3A1006",
+        "http_status": 200,
+        "real_time": 2,
+        "examples": [
+          {
+            "patternId": null,
+            "patternName": "Parcheggio Due Obelischi",
+            "stopId": null,
+            "routeShortName": "BRT1",
+            "routeTypeIco": null,
+            "routeColor": "FFFFFF",
+            "arrival": null,
+            "departure": "12:25",
+            "arrivalDelay": 0,
+            "departureDelay": 0,
+            "realtime": true,
+            "tripId": null,
+            "departureTime": null,
+            "departureTimeIco": null,
+            "pastTimeColor": null,
+            "isNextDay": false,
+            "approaching": "4 min",
+            "index": 0
+          },
+          {
+            "patternId": null,
+            "patternName": "Parcheggio Due Obelischi",
+            "stopId": null,
+            "routeShortName": "BRT1",
+            "routeTypeIco": null,
+            "routeColor": "FFFFFF",
+            "arrival": null,
+            "departure": "12:37",
+            "arrivalDelay": 0,
+            "departureDelay": 0,
+            "realtime": true,
+            "tripId": null,
+            "departureTime": null,
+            "departureTimeIco": null,
+            "pastTimeColor": null,
+            "isNextDay": false,
+            "approaching": "17 min",
+            "index": 0
+          }
+        ]
+      },
+      {
+        "url": "https://www.moovle.me/api/otp/stoptimes?otpEndPoint=https%3A%2F%2Fmoovle.azure-api.net%2Fcatania&stopId=1%3A1006&patternId=",
+        "http_status": 200,
+        "real_time": 2,
+        "examples": [
+          {
+            "patternId": null,
+            "patternName": "Parcheggio Due Obelischi",
+            "stopId": null,
+            "routeShortName": "BRT1",
+            "routeTypeIco": null,
+            "routeColor": "FFFFFF",
+            "arrival": null,
+            "departure": "12:25",
+            "arrivalDelay": 0,
+            "departureDelay": 0,
+            "realtime": true,
+            "tripId": null,
+            "departureTime": null,
+            "departureTimeIco": null,
+            "pastTimeColor": null,
+            "isNextDay": false,
+            "approaching": "4 min",
+            "index": 0
+          },
+          {
+            "patternId": null,
+            "patternName": "Parcheggio Due Obelischi",
+            "stopId": null,
+            "routeShortName": "BRT1",
+            "routeTypeIco": null,
+            "routeColor": "FFFFFF",
+            "arrival": null,
+            "departure": "12:37",
+            "arrivalDelay": 0,
+            "departureDelay": 0,
+            "realtime": true,
+            "tripId": null,
+            "departureTime": null,
+            "departureTimeIco": null,
+            "pastTimeColor": null,
+            "isNextDay": false,
+            "approaching": "17 min",
+            "index": 0
+          }
+        ]
+      },
+      {
+        "url": "https://www.moovle.me/api/otp/stoptimes?otpEndPoint=https%3A%2F%2Fmoovle.azure-api.net%2Fcatania&stopId=1%3A1836",
+        "http_status": 200,
+        "real_time": 0,
+        "examples": []
+      },
+      {
+        "url": "https://www.moovle.me/api/otp/stoptimes?otpEndPoint=https%3A%2F%2Fmoovle.azure-api.net%2Fcatania&stopId=1%3A1836&patternId=",
+        "http_status": 200,
+        "real_time": 0,
+        "examples": []
+      }
+    ]
+  },
+  "busone": {
+    "measured_gps_endpoint": "https://proxy.busone.app/amts/gtfs-rt/vehicle-positions.json",
+    "measured_gps_count": 75,
+    "current_app_uses_vehicle_positions": false,
+    "trip_updates_provenance": "oracle-predicted, distinto dai fix GPS misurati",
+    "static_alignment": {
+      "previous_snapshot_run": 42523720428,
+      "current_feed_trip_count": 158,
+      "matched_previous_static": 158,
+      "unmatched_previous_static": 0,
+      "unmatched_examples": []
+    },
+    "quality_note": "Pubblicazione recente e collegamento GTFS corretto non provano la precisione dell’arrivo."
+  },
+  "moovit": {
+    "documentation": "https://api-docs.moovit.com/api-docs/5.1/MoovitPublicTransitAPIs.html",
+    "authentication": "API_KEY e firma HMAC con chiave di licenza",
+    "access": "Accordo/credenziali del fornitore; nessun tentativo di usare chiavi di altri client."
+  },
+  "evidence_runs": [
+    "https://github.com/AndreaGirlando/Liotru-Express/actions/runs/42805745025",
+    "https://github.com/AndreaGirlando/Liotru-Express/actions/runs/42805902448",
+    "https://github.com/AndreaGirlando/Liotru-Express/actions/runs/42806120422",
+    "https://github.com/AndreaGirlando/Liotru-Express/actions/runs/42806309033",
+    "https://github.com/AndreaGirlando/Liotru-Express/actions/runs/42806628908"
+  ],
+  "next_validation": "Confrontare linea, fermata e orario del caso segnalato con gli arrivi effettivi. Il caso non è ancora stato identificato."
+}
