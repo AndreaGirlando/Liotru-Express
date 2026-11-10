@@ -71,8 +71,27 @@ jobs:
                       meta['samples']=sample
                   except Exception as e:meta['parse_error']=str(e)
               report['feeds'].append(meta)
+
+          meta,body=get('https://www.moovle.me/js/transport-app.js')
+          lines=body.splitlines()
+          selected=set()
+          for i,line in enumerate(lines):
+              if any(k in line for k in ['const url','otpEndpoint','stoptimes','realtime','realtimeState','realtimeDeparture','scheduledDeparture','stopId','fetch(']):
+                  for n in range(max(0,i-2),min(len(lines),i+4)):selected.add(n)
+          report['moovle_contract']=[{'line':i+1,'text':lines[i][:400]} for i in sorted(selected)][:220]
+          meta,page=get('https://www.moovle.me/regions/catania/?route=1:A-MS')
+          report['moovle_bootstrap']=[line.strip()[:800] for line in page.splitlines() if any(k in line for k in ['otpEndpoint','transport-app','azure-api','data-region','initialStop','apiBase'])][:20]
+          for f in report['feeds']:
+              samples=f.pop('samples',[])
+              f['samples']=[]
+              for s in samples[:3]:
+                  item={k:v for k,v in s.items() if k not in ['stop_time_update','stopTimeUpdate']}
+                  stops=s.get('stop_time_update',s.get('stopTimeUpdate',[]))
+                  if stops:item['first_stop_updates']=stops[:2]
+                  f['samples'].append(item)
+
           Path('source-research/report.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
-          print(json.dumps({k:report[k] for k in ['checked_utc','pages','scripts']},ensure_ascii=False,indent=2))
+          print(json.dumps({k:report[k] for k in ['checked_utc','moovle_contract','moovle_bootstrap','feeds']},ensure_ascii=False,indent=2))
           PY
           python3 /tmp/research.py
       - uses: actions/upload-artifact@v4
